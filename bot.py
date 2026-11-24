@@ -4,9 +4,11 @@ import yfinance as yf
 import feedparser
 from google import genai
 
-TG_TOKEN = os.environ["TG_TOKEN"]
-CHAT_ID = os.environ["CHAT_ID"]
-GEMINI_KEY = os.environ["GEMINI_KEY"]
+print("1. Скрипт запущен")
+
+TG_TOKEN = os.environ["TG_TOKEN"].strip()
+CHAT_ID = os.environ["CHAT_ID"].strip()
+GEMINI_KEY = os.environ["GEMINI_KEY"].strip()
 
 WATCHLIST = [
     "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", 
@@ -39,9 +41,10 @@ def check_stocks():
 def get_top_news():
     feed = feedparser.parse("https://finance.yahoo.com/news/rssindex")
     headlines = [entry.title for entry in feed.entries[:25]]
+    print(f"2. Найдено новостей в RSS: {len(headlines)}")
     
     if not headlines:
-        return ""
+        return "Новости не найдены"
         
     client = genai.Client(api_key=GEMINI_KEY)
     prompt = (
@@ -69,6 +72,5 @@ if __name__ == "__main__":
     if news_summary:
         message += "📰 ГЛАВНЫЕ НОВОСТИ РЫНКА:\n" + news_summary
         
-    if message:
-        send_telegram(message)
-        
+    print("3. Отправляем сообщение в Telegram...")
+    send_telegram(message)
