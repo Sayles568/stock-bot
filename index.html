@@ -6,514 +6,160 @@
   <title>Скидки на рынке</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root {
-      --bg-main: #070b14;
-      --bg-card: #0f172a;
-      --border: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #38bdf8;
-      --accent-glow: rgba(56, 189, 248, 0.2);
-      --green: #10b981;
-      --green-bg: rgba(16, 185, 129, 0.14);
-      --red: #f43f5e;
-      --red-bg: rgba(244, 63, 94, 0.14);
-    }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      margin: 0;
-      padding: 16px 14px 88px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-      background: radial-gradient(circle at top right, #0f1d3a 0%, var(--bg-main) 45%);
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      min-height: 100vh;
-    }
-    .page { display: none; }
-    .page.active { display: block; }
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border);
-    }
-    .header-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
-    .header-sub { font-size: 11px; color: var(--text-muted); background: var(--bg-card); padding: 4px 9px; border-radius: 20px; border: 1px solid var(--border); }
-    .filters { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
-    .filter-btn {
-      background: var(--bg-card);
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      padding: 8px 14px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .filter-btn.active {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      border-color: #38bdf8;
-      color: #ffffff;
-      box-shadow: 0 4px 14px var(--accent-glow);
-    }
-    .stock-card {
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(11, 17, 32, 0.98) 100%);
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-    }
-    .stock-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .ticker-box { display: flex; align-items: center; gap: 8px; }
-    .ticker { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
-    .badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 8px; }
-    .badge.buy { background: var(--green-bg); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge.avoid { background: var(--red-bg); color: var(--red); border: 1px solid rgba(244, 63, 94, 0.3); }
-    .price-box { text-align: right; }
-    .price { font-size: 17px; font-weight: 700; color: #fff; }
-    .change { font-size: 13px; font-weight: 700; margin-top: 1px; }
-    .change.up { color: var(--green); }
-    .change.down { color: var(--red); }
-    .reason { font-size: 13px; color: var(--text-muted); line-height: 1.45; margin-bottom: 10px; }
-    .chart-wrap {
-      background: rgba(7, 11, 20, 0.6);
-      border-radius: 10px;
-      padding: 6px 8px 4px;
-      border: 1px solid rgba(30, 41, 59, 0.7);
-    }
-    canvas.chart { width: 100%; height: 64px; display: block; }
-    .chart-labels { display: flex; justify-content: space-between; font-size: 10px; color: #64748b; margin-top: 3px; }
-    .news-card {
-      background: var(--bg-card);
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 10px;
-      border: 1px solid var(--border);
-    }
-    .news-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
-    .news-tickers {
-      color: var(--accent);
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-weight: 700;
-    }
-    .news-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; line-height: 1.38; color: #f1f5f9; }
-    .news-summary { font-size: 13px; color: var(--text-muted); line-height: 1.45; }
-    .bear-header {
-      background: linear-gradient(135deg, #0f172a 0%, #172554 100%);
-      border-radius: 16px;
-      padding: 14px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-      border: 1px solid #1e3a8a;
-    }
-    .bear-avatar {
-      font-size: 32px;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      width: 50px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 14px;
-      flex-shrink: 0;
-    }
-    .key-box {
-      background: var(--bg-card);
-      padding: 14px;
-      border-radius: 14px;
-      margin-bottom: 14px;
-      font-size: 13px;
-      border: 1px solid #1d4ed8;
-    }
-    .key-box input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--bg-main);
-      color: var(--text-main);
-      outline: none;
-    }
-    .key-box button {
-      margin-top: 10px;
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #fff;
-      border: none;
-      padding: 9px 16px;
-      border-radius: 10px;
-      font-weight: 700;
-      width: 100%;
-    }
-    .chat-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; min-height: 250px; }
-    .msg { padding: 11px 14px; border-radius: 16px; max-width: 86%; font-size: 14px; line-height: 1.45; white-space: pre-line; }
-    .msg.bear {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: #e2e8f0;
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
-    }
-    .msg.user {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #fff;
-      align-self: flex-end;
-      border-bottom-right-radius: 4px;
-    }
-    .suggestions { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 2px; }
-    .sug-btn {
-      background: var(--bg-card);
-      color: var(--accent);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      padding: 7px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-    .chat-input-row { display: flex; gap: 8px; }
-    .chat-input-row input {
-      flex: 1;
-      padding: 12px 15px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: var(--bg-card);
-      color: var(--text-main);
-      font-size: 14px;
-      outline: none;
-    }
-    .chat-input-row button {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #fff;
-      border: none;
-      border-radius: 14px;
-      padding: 0 18px;
-      font-weight: 700;
-      font-size: 16px;
-    }
-    .nav {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: #0b1120;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-around;
-      padding: 8px 0 14px;
-      z-index: 100;
-    }
-    .nav-item {
-      background: none; border: none; color: #64748b;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      font-size: 11px; font-weight: 700; cursor: pointer;
-    }
-    .nav-item.active { color: var(--accent); }
-    .nav-icon { font-size: 20px; }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;padding:14px 14px 84px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#070b14;color:#f8fafc}
+    .page{display:none}.page.active{display:block}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1e293b}
+    .title{font-size:18px;font-weight:800}.sub{font-size:11px;color:#94a3b8;background:#0f172a;padding:4px 9px;border-radius:20px;border:1px solid #1e293b}
+    .filters{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}
+    .fbtn{background:#0f172a;color:#94a3b8;border:1px solid #1e293b;padding:8px 13px;border-radius:12px;font-size:13px;font-weight:600;white-space:nowrap}
+    .fbtn.active{background:#0284c7;border-color:#38bdf8;color:#fff}
+    .card{background:#0f172a;border-radius:16px;padding:14px;margin-bottom:11px;border:1px solid #1e293b}
+    .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .ticker{font-size:18px;font-weight:800;margin-right:6px}
+    .badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px}
+    .buy{background:rgba(16,185,129,.15);color:#10b981}.avoid{background:rgba(244,63,94,.15);color:#f43f5e}
+    .price{font-size:16px;font-weight:700;text-align:right}.chg{font-size:13px;font-weight:700;text-align:right}
+    .up{color:#10b981}.down{color:#f43f5e}
+    .reason{font-size:13px;color:#94a3b8;line-height:1.4;margin-bottom:10px}
+    .cwrap{background:#070b14;border-radius:10px;padding:6px 8px 4px;border:1px solid #1e293b}
+    canvas{width:100%;height:60px;display:block}
+    .clabels{display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-top:3px}
+    .ntick{color:#38bdf8;background:rgba(56,189,248,.12);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
+    .ntitle{font-size:15px;font-weight:700;margin:6px 0;line-height:1.35}
+    .bear-box{background:linear-gradient(135deg,#0f172a,#172554);border:1px solid #1e3a8a;border-radius:16px;padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .avatar{font-size:30px;background:rgba(56,189,248,.12);width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:14px;flex-shrink:0}
+    .kbox{background:#0f172a;padding:12px;border-radius:14px;margin-bottom:12px;font-size:13px;border:1px solid #1d4ed8}
+    .kbox input,.crow input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #1e293b;background:#070b14;color:#fff;font-size:14px;outline:none}
+    .kbox button{margin-top:8px;background:#0284c7;color:#fff;border:none;padding:9px;border-radius:10px;font-weight:700;width:100%}
+    .chat{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;min-height:220px}
+    .msg{padding:10px 13px;border-radius:15px;max-width:86%;font-size:14px;line-height:1.4;white-space:pre-line}
+    .bear{background:#0f172a;border:1px solid #1e293b;align-self:flex-start}
+    .user{background:#0284c7;color:#fff;align-self:flex-end}
+    .sugs{display:flex;gap:8px;overflow-x:auto;margin-bottom:10px}
+    .sbtn{background:#0f172a;color:#38bdf8;border:1px solid rgba(56,189,248,.3);padding:7px 11px;border-radius:12px;font-size:12px;white-space:nowrap}
+    .crow{display:flex;gap:8px}.crow button{background:#0284c7;color:#fff;border:none;border-radius:12px;padding:0 16px;font-weight:700;font-size:16px}
+    .nav{position:fixed;bottom:0;left:0;right:0;background:#0b1120;border-top:1px solid #1e293b;display:flex;justify-content:space-around;padding:8px 0 14px;z-index:99}
+    .nbtn{background:none;border:none;color:#64748b;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700}
+    .nbtn.active{color:#38bdf8}
   </style>
 </head>
 <body>
-
-  <div id="page-stocks" class="page active">
-    <div class="header-bar">
-      <div class="header-title">Рынок и скидки</div>
-      <div class="header-sub" id="updated-time">Загрузка...</div>
-    </div>
+  <div id="p-stocks" class="page active">
+    <div class="top"><div class="title">Рынок и скидки</div><div class="sub" id="upd">Загрузка...</div></div>
     <div class="filters">
-      <button type="button" class="filter-btn active" onclick="setFilter('ALL', this)">Все акции</button>
-      <button type="button" class="filter-btn" onclick="setFilter('BUY', this)">✅ Нужно брать</button>
-      <button type="button" class="filter-btn" onclick="setFilter('AVOID', this)">⛔ Не нужно</button>
+      <button type="button" class="fbtn active" onclick="flt('ALL',this)">Все акции</button>
+      <button type="button" class="fbtn" onclick="flt('BUY',this)">✅ Нужно брать</button>
+      <button type="button" class="fbtn" onclick="flt('AVOID',this)">⛔ Не нужно</button>
     </div>
-    <div id="stocks-container">Загрузка графиков и оценок...</div>
+    <div id="s-list">Загрузка графиков...</div>
   </div>
 
-  <div id="page-news" class="page">
-    <div class="header-bar">
-      <div class="header-title">Новости за 7 дней</div>
-      <div class="header-sub" id="news-count">0 шт.</div>
-    </div>
-    <div id="news-container">Загрузка новостей...</div>
+  <div id="p-news" class="page">
+    <div class="top"><div class="title">Новости за 7 дней</div><div class="sub" id="ncnt">0 шт.</div></div>
+    <div id="n-list">Загрузка новостей...</div>
   </div>
 
-  <div id="page-bear" class="page">
-    <div class="bear-header">
-      <div class="bear-avatar">🐻</div>
-      <div>
-        <div style="font-weight: 800; font-size: 16px; color: #fff;">Мишка-Инвестор</div>
-        <div style="font-size: 12px; color: #93c5fd; margin-top: 2px;">Анализирует графики и новости за 7 дней</div>
-      </div>
+  <div id="p-bear" class="page">
+    <div class="bear-box"><div class="avatar">🐻</div><div><div style="font-weight:800;font-size:16px">Мишка-Инвестор</div><div style="font-size:12px;color:#93c5fd">Анализирует графики и новости за 7 дней</div></div></div>
+    <div id="kbox" class="kbox" style="display:none">
+      <div>🔑 Вставь свой Gemini API Key (сохранится только в телефоне):</div>
+      <input type="password" id="kinp" placeholder="AIzaSy...">
+      <button type="button" onclick="saveK()">Активировать Мишку</button>
     </div>
-
-    <div id="api-key-setup" class="key-box" style="display:none;">
-      <div style="color: #e2e8f0;">🔑 Вставь один раз свой Gemini API Key, чтобы Мишка отвечал (ключ хранится только у тебя в телефоне):</div>
-      <input type="password" id="gemini-key-input" placeholder="AIzaSy...">
-      <button type="button" onclick="saveKey()">Активировать Мишку</button>
+    <div class="chat" id="chat"><div class="msg bear">Привет! Я Мишка 🐻 Слежу за акциями и новостями за неделю. Спрашивай, что лучше прикупить со скидкой!</div></div>
+    <div class="sugs">
+      <button type="button" class="sbtn" onclick="qAsk('Что из акций сейчас выгоднее всего купить и почему?')">💡 Что купить?</button>
+      <button type="button" class="sbtn" onclick="qAsk('Какие акции сейчас лучше не брать?')">⛔ Что не брать?</button>
+      <button type="button" class="sbtn" onclick="qAsk('Что главного произошло на рынке за 7 дней?')">📰 Итоги недели</button>
     </div>
-
-    <div class="chat-box" id="chat-box">
-      <div class="msg bear">Привет! Я Мишка 🐻 Слежу за просадками всех 25 компаний и новостями за неделю. Спрашивай, какие акции сейчас со скидкой, а куда лучше не лезть!</div>
-    </div>
-
-    <div class="suggestions">
-      <button type="button" class="sug-btn" onclick="quickAsk('Что из списка акций сейчас выгоднее всего купить и почему?')">💡 Что купить сейчас?</button>
-      <button type="button" class="sug-btn" onclick="quickAsk('Какие акции сейчас лучше вообще не трогать?')">⛔ Что не нужно брать?</button>
-      <button type="button" class="sug-btn" onclick="quickAsk('Что главного произошло на рынке за последние 7 дней?')">📰 Итоги 7 дней</button>
-    </div>
-
-    <div class="chat-input-row">
-      <input type="text" id="chat-input" placeholder="Спроси совет у Мишки..." onkeydown="if(event.key==='Enter') sendMessage()">
-      <button type="button" onclick="sendMessage()">➤</button>
-    </div>
+    <div class="crow"><input type="text" id="cinp" placeholder="Спроси у Мишки..." onkeydown="if(event.key==='Enter')send()"><button type="button" onclick="send()">➤</button></div>
   </div>
 
   <div class="nav">
-    <button type="button" class="nav-item active" onclick="switchTab('stocks', this)">
-      <span class="nav-icon">📈</span>
-      <span>Акции</span>
-    </button>
-    <button type="button" class="nav-item" onclick="switchTab('news', this)">
-      <span class="nav-icon">📰</span>
-      <span>Новости 7д</span>
-    </button>
-    <button type="button" class="nav-item" onclick="switchTab('bear', this)">
-      <span class="nav-icon">🐻</span>
-      <span>Мишка</span>
-    </button>
+    <button type="button" class="nbtn active" onclick="tab('stocks',this)"><span style="font-size:20px">📈</span><span>Акции</span></button>
+    <button type="button" class="nbtn" onclick="tab('news',this)"><span style="font-size:20px">📰</span><span>Новости 7д</span></button>
+    <button type="button" class="nbtn" onclick="tab('bear',this)"><span style="font-size:20px">🐻</span><span>Мишка</span></button>
   </div>
 
   <script>
-    var marketData = { stocks: [], news_7d: [], updated_at: "" };
-    var currentFilter = "ALL";
-
-    function switchTab(tab, btn) {
-      var pages = document.querySelectorAll('.page');
-      for (var i = 0; i < pages.length; i++) { pages[i].classList.remove('active'); }
-      var navs = document.querySelectorAll('.nav-item');
-      for (var j = 0; j < navs.length; j++) { navs[j].classList.remove('active'); }
-      var target = document.getElementById('page-' + tab);
-      if (target) { target.classList.add('active'); }
-      if (btn) { btn.classList.add('active'); }
-      window.scrollTo(0, 0);
+    var db={stocks:[],news_7d:[]},cur='ALL';
+    function tab(t,b){
+      document.querySelectorAll('.page').forEach(function(e){e.classList.remove('active')});
+      document.querySelectorAll('.nbtn').forEach(function(e){e.classList.remove('active')});
+      document.getElementById('p-'+t).classList.add('active');
+      b.classList.add('active');
+      window.scrollTo(0,0);
     }
-
-    function setFilter(filter, btn) {
-      currentFilter = filter;
-      var btns = document.querySelectorAll('.filter-btn');
-      for (var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
-      if (btn) { btn.classList.add('active'); }
-      renderStocks();
+    function flt(f,b){
+      cur=f;
+      document.querySelectorAll('.fbtn').forEach(function(e){e.classList.remove('active')});
+      b.classList.add('active');
+      renderS();
     }
-
-    function drawChart(canvas, prices, isUp) {
-      if (!canvas || !prices || prices.length < 2) return;
-      var dpr = window.devicePixelRatio || 1;
-      var rect = canvas.getBoundingClientRect();
-      var w = rect.width || 280;
-      var h = rect.height || 64;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      var ctx = canvas.getContext('2d');
-      ctx.scale(dpr, dpr);
-
-      var pad = 6;
-      var min = Math.min.apply(null, prices);
-      var max = Math.max.apply(null, prices);
-      var range = (max - min) || 1;
-      var color = isUp ? '#10b981' : '#f43f5e';
-      var points = [];
-
-      for (var i = 0; i < prices.length; i++) {
-        points.push({
-          x: pad + (i / (prices.length - 1)) * (w - pad * 2),
-          y: h - pad - ((prices[i] - min) / range) * (h - pad * 2)
-        });
-      }
-
-      var grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, isUp ? 'rgba(16, 185, 129, 0.28)' : 'rgba(244, 63, 94, 0.28)');
-      grad.addColorStop(1, 'rgba(7, 11, 20, 0.0)');
-
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, h);
-      for (var k = 0; k < points.length; k++) { ctx.lineTo(points[k].x, points[k].y); }
-      ctx.lineTo(points[points.length - 1].x, h);
-      ctx.closePath();
-      ctx.fillStyle = grad;
-      ctx.fill();
-
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2.5;
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      for (var m = 0; m < points.length; m++) {
-        if (m === 0) ctx.moveTo(points[m].x, points[m].y);
-        else ctx.lineTo(points[m].x, points[m].y);
-      }
-      ctx.stroke();
-
-      ctx.fillStyle = color;
-      for (var p = 0; p < points.length; p++) {
-        ctx.beginPath();
-        ctx.arc(points[p].x, points[p].y, p === points.length - 1 ? 3.5 : 2.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    function chart(cv,pr,up){
+      if(!cv||!pr||pr.length<2)return;
+      var d=window.devicePixelRatio||1,r=cv.getBoundingClientRect(),w=r.width||280,h=r.height||60;
+      cv.width=w*d;cv.height=h*d;
+      var c=cv.getContext('2d');c.scale(d,d);
+      var mn=Math.min.apply(null,pr),mx=Math.max.apply(null,pr),rg=(mx-mn)||1,col=up?'#10b981':'#f43f5e',pts=[];
+      for(var i=0;i<pr.length;i++)pts.push({x:6+(i/(pr.length-1))*(w-12),y:h-6-((pr[i]-mn)/rg)*(h-12)});
+      c.strokeStyle=col;c.lineWidth=2.5;c.beginPath();
+      pts.forEach(function(p,i){i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)});
+      c.stroke();c.fillStyle=col;
+      pts.forEach(function(p){c.beginPath();c.arc(p.x,p.y,2.8,0,6.28);c.fill()});
     }
-
-    function renderStocks() {
-      var container = document.getElementById('stocks-container');
-      var list = marketData.stocks || [];
-      if (currentFilter !== 'ALL') {
-        list = list.filter(function(s) { return s.verdict === currentFilter; });
-      }
-      if (list.length === 0) {
-        container.innerHTML = '<div class="stock-card" style="color:var(--text-muted)">Нет акций в этой категории.</div>';
-        return;
-      }
-      var html = '';
-      for (var idx = 0; idx < list.length; idx++) {
-        var s = list[idx];
-        var isBuy = s.verdict === 'BUY';
-        var isUp = s.change >= 0;
-        var startDate = (s.dates && s.dates.length) ? s.dates[0] : '7д назад';
-        var endDate = (s.dates && s.dates.length) ? s.dates[s.dates.length - 1] : 'Сегодня';
-        html += '<div class="stock-card">' +
-          '<div class="stock-top">' +
-            '<div class="ticker-box">' +
-              '<span class="ticker">' + s.ticker + '</span>' +
-              '<span class="badge ' + (isBuy ? 'buy' : 'avoid') + '">' + (isBuy ? '✅ Нужно брать' : '⛔ Не нужно') + '</span>' +
-            '</div>' +
-            '<div class="price-box">' +
-              '<div class="price">$' + Number(s.price).toFixed(2) + '</div>' +
-              '<div class="change ' + (isUp ? 'up' : 'down') + '">' + (isUp ? '+' : '') + Number(s.change).toFixed(2) + '%</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="reason">' + (s.reason || '') + '</div>' +
-          '<div class="chart-wrap">' +
-            '<canvas class="chart" id="chart-' + idx + '"></canvas>' +
-            '<div class="chart-labels"><span>' + startDate + '</span><span>График за 7 дней</span><span>' + endDate + '</span></div>' +
-          '</div>' +
-        '</div>';
-      }
-      container.innerHTML = html;
-
-      for (var c = 0; c < list.length; c++) {
-        var item = list[c];
-        var canvas = document.getElementById('chart-' + c);
-        var weekUp = (item.history && item.history.length >= 2) ? (item.history[item.history.length - 1] >= item.history[0]) : (item.change >= 0);
-        drawChart(canvas, item.history, weekUp);
-      }
+    function renderS(){
+      var el=document.getElementById('s-list'),ls=db.stocks||[];
+      if(cur!=='ALL')ls=ls.filter(function(s){return s.verdict===cur});
+      if(!ls.length){el.innerHTML='<div class="card">Нет акций в этой категории.</div>';return}
+      el.innerHTML=ls.map(function(s,i){
+        var buy=s.verdict==='BUY',up=s.change>=0,d1=(s.dates&&s.dates[0])||'7д назад',d2=(s.dates&&s.dates[s.dates.length-1])||'Сегодня';
+        return '<div class="card"><div class="row"><div><span class="ticker">'+s.ticker+'</span><span class="badge '+(buy?'buy':'avoid')+'">'+(buy?'✅ Нужно брать':'⛔ Не нужно')+'</span></div><div><div class="price">$'+Number(s.price).toFixed(2)+'</div><div class="chg '+(up?'up':'down')+'">'+(up?'+':'')+Number(s.change).toFixed(2)+'%</div></div></div><div class="reason">'+(s.reason||'')+'</div><div class="cwrap"><canvas id="cv-'+i+'"></canvas><div class="clabels"><span>'+d1+'</span><span>7 дней</span><span>'+d2+'</span></div></div></div>';
+      }).join('');
+      ls.forEach(function(s,i){
+        var wUp=s.history&&s.history.length>=2?s.history[s.history.length-1]>=s.history[0]:s.change>=0;
+        chart(document.getElementById('cv-'+i),s.history,wUp);
+      });
     }
-
-    function renderNews() {
-      var container = document.getElementById('news-container');
-      var news = marketData.news_7d || [];
-      document.getElementById('news-count').innerText = news.length + ' шт.';
-      if (news.length === 0) {
-        container.innerHTML = '<div class="news-card" style="color:var(--text-muted)">Новостей за последние 7 дней пока нет.</div>';
-        return;
-      }
-      var html = '';
-      for (var i = 0; i < news.length; i++) {
-        var n = news[i];
-        html += '<div class="news-card">' +
-          '<div class="news-meta"><span class="news-tickers">' + (n.tickers || 'Рынок') + '</span><span>' + (n.date || '') + '</span></div>' +
-          '<div class="news-title">' + n.title + '</div>' +
-          '<div class="news-summary">' + (n.summary || '') + '</div>' +
-        '</div>';
-      }
-      container.innerHTML = html;
+    function renderN(){
+      var el=document.getElementById('n-list'),nw=db.news_7d||[];
+      document.getElementById('ncnt').innerText=nw.length+' шт.';
+      if(!nw.length){el.innerHTML='<div class="card">Новостей пока нет.</div>';return}
+      el.innerHTML=nw.map(function(n){
+        return '<div class="card"><div class="row"><span class="ntick">'+(n.tickers||'Рынок')+'</span><span style="font-size:11px;color:#94a3b8">'+(n.date||'')+'</span></div><div class="ntitle">'+n.title+'</div><div class="reason" style="margin:0">'+(n.summary||'')+'</div></div>';
+      }).join('');
     }
-
-    function checkKey() {
-      var key = localStorage.getItem('user_gemini_key');
-      document.getElementById('api-key-setup').style.display = key ? 'none' : 'block';
-    }
-
-    function saveKey() {
-      var val = document.getElementById('gemini-key-input').value.trim();
-      if (val) {
-        localStorage.setItem('user_gemini_key', val);
-        checkKey();
+    function chkK(){document.getElementById('kbox').style.display=localStorage.getItem('user_gemini_key')?'none':'block'}
+    function saveK(){var v=document.getElementById('kinp').value.trim();if(v){localStorage.setItem('user_gemini_key',v);chkK()}}
+    function qAsk(t){document.getElementById('cinp').value=t;send()}
+    async function send(){
+      var inp=document.getElementById('cinp'),t=inp.value.trim();if(!t)return;
+      var k=localStorage.getItem('user_gemini_key');if(!k){chkK();return}
+      var cb=document.getElementById('chat');
+      cb.innerHTML+='<div class="msg user">'+t.replace(/</g,'&lt;')+'</div>';inp.value='';
+      var id='m'+Date.now();cb.innerHTML+='<div class="msg bear" id="'+id+'">🐻 Думаю...</div>';
+      var sc=(db.stocks||[]).map(function(s){return s.ticker+': $'+s.price+' ('+s.change+'%), '+s.verdict+' - '+s.reason}).join('\n');
+      var nc=(db.news_7d||[]).slice(0,8).map(function(n){return n.title+': '+n.summary}).join('\n');
+      var pr='Ты Мишка-инвестор. Отвечай на русском, кратко и без звездочек (*).\nАкции:\n'+sc+'\nНовости:\n'+nc+'\nВопрос: '+t;
+      var rep=null,ms=['gemini-2.5-flash','gemini-flash-latest'];
+      for(var i=0;i<ms.length;i++){
+        try{
+          var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+ms[i]+':generateContent?key='+k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:pr}]}]})});
+          var d=await r.json();
+          if(d&&d.candidates&&d.candidates[0]){rep=d.candidates[0].content.parts[0].text;break}
+        }catch(e){}
       }
+      document.getElementById(id).innerText=rep||'Ошибка ответа. Проверь ключ.';
     }
-
-    function quickAsk(text) {
-      document.getElementById('chat-input').value = text;
-      sendMessage();
-    }
-
-    async function sendMessage() {
-      var input = document.getElementById('chat-input');
-      var text = input.value.trim();
-      if (!text) return;
-
-      var apiKey = localStorage.getItem('user_gemini_key');
-      if (!apiKey) {
-        checkKey();
-        alert('Сначала вставь свой Gemini API Key в поле выше!');
-        return;
-      }
-
-      var chatBox = document.getElementById('chat-box');
-      chatBox.innerHTML += '<div class="msg user">' + text.replace(/</g, '&lt;') + '</div>';
-      input.value = '';
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-
-      var loadingId = 'load-' + Date.now();
-      chatBox.innerHTML += '<div class="msg bear" id="' + loadingId + '">🐻 Мишка изучает графики...</div>';
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-
-      var stocksContext = (marketData.stocks || []).map(function(s) {
-        return s.ticker + ': $' + s.price + ' (' + s.change + '%), вердикт: ' + s.verdict + ' (' + s.reason + ')';
-      }).join('\n');
-      var newsContext = (marketData.news_7d || []).slice(0, 10).map(function(n) {
-        return '- ' + n.title + ': ' + n.summary;
-      }).join('\n');
-
-      var systemContext = 'Ты Мишка — дружелюбный и умный медведь-инвестор в Telegram Mini App. Отвечай на русском языке, кратко, по делу и без звездочек (*).\n' +
-        'АКЦИИ:\n' + stocksContext + '\n\nНОВОСТИ ЗА 7 ДНЕЙ:\n' + newsContext + '\n\nВопрос: ' + text;
-
-      var models = ['gemini-2.5-flash', 'gemini-flash-latest'];
-      var reply = null;
-
-      for (var i = 0; i < models.length; i++) {
-        try {
-          var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + models[i] + ':generateContent?key=' + apiKey, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: systemContext }] }] })
-          });
-          var data = await res.json();
-          if (data && data.candidates && data.candidates[0] && data.candidates[0].content) {
-            reply = data.candidates[0].content.parts[0].text;
-            break;
-          }
-        } catch (e) {}
-      }
-
-      document.getElementById(loadingId).innerText = reply || 'Мишка задумался и не смог ответить. Проверь API-ключ.';
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }
-
-    try {
-      if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.expand();
-        if (window.Telegram.WebApp.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#070b14');
-        if (window.Telegram.WebApp.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#070b14');
-      }
-    } catch (e) {}
-
-    checkKey();
-
-    fetch('data.json?t=' + Date.now())
-      .then(function(r) {
-        if (!r.ok) throw new
+    try{if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.expand();window.Telegram.WebApp.setHeaderColor('#070b14');window.Telegram.WebApp.setBackgroundColor('#070b14')}}catch(e){}
+    chkK();
+    fetch('data.json?t='+Date.now()).then(function(r){if(!r.ok)throw 1;return r.json()}).then(function(d){
+      db=d;document.getElementById('upd').innerText=d.updated_at||'Готово';renderS();renderN();
+    }).catch(function(){
+      document.getElementById('upd').innerText='Нет data.json';
+      document.getElementById('s-list').innerHTML='<div class="card">Файл data.json не найден. Запусти Run workflow в Actions!</div>';
+    });
+  </script>
+</body>
+</html>
