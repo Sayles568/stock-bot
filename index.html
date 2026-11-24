@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Скидки на рынке</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-main: #070b14;
+      --bg-card: #0f172a;
+      --bg-card-hover: #15203b;
+      --border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.2);
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.14);
+      --red: #f43f5e;
+      --red-bg: rgba(244, 63, 94, 0.14);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      padding: 16px 14px 88px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(circle at top right, #0f1d3a 0%, var(--bg-main) 45%);
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+    .page { display: none; animation: fadeIn 0.2s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+    .header-sub { font-size: 11px; color: var(--text-muted); background: var(--bg-card); padding: 4px 9px; border-radius: 20px; border: 1px solid var(--border); }
+
+    /* Фильтры на 1 странице */
+    .filters { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
+    .filter-btn {
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .filter-btn.active {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    /* Карточка акции */
+    .stock-card {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(11, 17, 32, 0.98) 100%);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+    .stock-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .ticker-box { display: flex; align-items: center; gap: 8px; }
+    .ticker { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 8px;
+      letter-spacing: 0.2px;
+    }
+    .badge.buy { background: var(--green-bg); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge.avoid { background: var(--red-bg); color: var(--red); border: 1px solid rgba(244, 63, 94, 0.3); }
+    .price-box { text-align: right; }
+    .price { font-size: 17px; font-weight: 700; color: #fff; }
+    .change { font-size: 13px; font-weight: 700; margin-top: 1px; }
+    .change.up { color: var(--green); }
+    .change.down { color: var(--red); }
+    .reason { font-size: 13px; color: var(--text-muted); line-height: 1.45; margin-bottom: 10px; }
+    .chart-wrap {
+      background: rgba(7, 11, 20, 0.6);
+      border-radius: 10px;
+      padding: 6px 8px 4px;
+      border: 1px solid rgba(30, 41, 59, 0.7);
+    }
+    canvas.chart { width: 100%; height: 64px; display: block; }
+    .chart-labels { display: flex; justify-content: space-between; font-size: 10px; color: #64748b; margin-top: 3px; }
+
+    /* Новости на 2 странице */
+    .news-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border);
+    }
+    .news-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+    .news-tickers {
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+    .news-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; line-height: 1.38; color: #f1f5f9; }
+    .news-summary { font-size: 13px; color: var(--text-muted); line-height: 1.45; }
+
+    /* Чат с Мишкой на 3 странице */
+    .bear-header {
+      background: linear-gradient(135deg, #0f172a 0%, #172554 100%);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      border: 1px solid #1e3a8a;
+    }
+    .bear-avatar {
+      font-size: 32px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      flex-shrink: 0;
+    }
+    .key-box {
+      background: var(--bg-card);
+      padding: 14px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      border: 1px solid #1d4ed8;
+    }
+    .key-box input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-main);
+      color: var(--text-main);
+      outline: none;
+    }
+    .key-box button {
+      margin-top: 10px;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      border: none;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      width: 100%;
+    }
+    .chat-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; min-height: 250px; }
+    .msg { padding: 11px 14px; border-radius: 16px; max-width: 86%; font-size: 14px; line-height: 1.45; white-space: pre-line; }
+    .msg.bear {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: #e2e8f0;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .msg.user {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .suggestions { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 2px; }
+    .sug-btn {
+      background: var(--bg-card);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 7px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .chat-input-row { display: flex; gap: 8px; }
+    .chat-input-row input {
+      flex: 1;
+      padding: 12px 15px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+    }
+    .chat-input-row input:focus { border-color: var(--accent); }
+    .chat-input-row button {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 0 18px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    /* Нижнее меню */
+    .nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(11, 17, 32, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0 14px;
+      z-index: 100;
+    }
+    .nav-item {
+      background: none; border: none; color: #64748b;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 700; cursor: pointer;
+      transition: color 0.15s;
+    }
+    .nav-item.active { color: var(--accent); }
+    .nav-icon { font-size: 20px; }
+  </style>
+</head>
+<body>
+
+  <!-- СТРАНИЦА 1: АКЦИИ И ГРАФИКИ -->
+  <div id="page-stocks" class="page active">
+    <div class="header-bar">
+      <div class="header-title">Рынок и скидки</div>
+      <div class="header-sub" id="updated-time">Загрузка...</div>
+    </div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('ALL', this)">Все акции</button>
+      <button class="filter-btn" onclick="setFilter('BUY', this)">✅ Нужно брать</button>
+      <button class="filter-btn" onclick="setFilter('AVOID', this)">⛔ Не нужно</button>
+    </div>
+    <div id="stocks-container">Загрузка графиков и оценок...</div>
+  </div>
+
+  <!-- СТРАНИЦА 2: НОВОСТИ ЗА 7 ДНЕЙ -->
+  <div id="page-news" class="page">
+    <div class="header-bar">
+      <div class="header-title">Новости за 7 дней</div>
+      <div class="header-sub" id="news-count">0 шт.</div>
+    </div>
+    <div id="news-container">Загрузка новостей...</div>
+  </div>
+
+  <!-- СТРАНИЦА 3: МИШКА СОВЕТНИК -->
+  <div id="page-bear" class="page">
+    <div class="bear-header">
+      <div class="bear-avatar">🐻</div>
+      <div>
+        <div style="font-weight: 800; font-size: 16px; color: #fff;">Мишка-Инвестор</div>
+        <div style="font-size: 12px; color: #93c5fd; margin-top: 2px;">Анализирует графики и новости за 7 дней в реальном времени</div>
+      </div>
+    </div>
+
+    <div id="api-key-setup" class="key-box" style="display:none;">
+      <div style="color: #e2e8f0;">🔑 Вставь один раз свой Gemini API Key, чтобы Мишка мог отвечать на вопросы (ключ хранится только в твоём телефоне):</div>
+      <input type="password" id="gemini-key-input" placeholder="AIzaSy...">
+      <button onclick="saveKey()">Активировать Мишку</button>
+    </div>
+
+    <div class="chat-box" id="chat-box">
+      <div class="msg bear">Привет! Я Мишка 🐻 Слежу за просадками всех 25 компаний и новостями за неделю. Спрашивай, какие акции сейчас со скидкой, а куда лучше не лезть!</div>
+    </div>
+
+    <div class="suggestions">
+      <button class="sug-btn" onclick="quickAsk('Что из списка акций сейчас выгоднее всего купить и почему?')">💡 Что купить сейчас?</button>
+      <button class="sug-btn" onclick="quickAsk('Какие акции сейчас лучше вообще не трогать?')">⛔ Что не нужно брать?</button>
+      <button class="sug-btn" onclick="quickAsk('Что главного произошло на рынке за последние 7 дней?')">📰 Итоги 7 дней</button>
+    </div>
+
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Спроси совет у Мишки..." onkeypress="if(event.key==='Enter') sendMessage()">
+      <button onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- НИЖНЯЯ НАВИГАЦИЯ -->
+  <div class="nav">
+    <button class="nav-item active" onclick="switchTab('stocks', this)">
+      <span class="nav-icon">📈</span>
+      <span>Акции</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('news', this)">
+      <span class="nav-icon">📰</span>
+      <span>Новости 7д</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('bear', this)">
+      <span class="nav-icon">🐻</span>
+      <span>Мишка</span>
+    </button>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    if (tg.setHeaderColor) tg.setHeaderColor('#070b14');
+    if (tg.setBackgroundColor) tg.setBackgroundColor('#070b14');
+
+    let marketData = { stocks: [], news_7d: [], updated_at: "" };
+    let currentFilter = "ALL";
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById('page-' + tab).classList.add('active');
+      btn.classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderStocks();
+    }
+
+    function drawChart(canvas, prices, isUp) {
+      if (!prices || prices.length < 2) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      const pad = 6;
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      const range = (max - min) || 1;
+
+      const color = isUp ? '#10b981' : '#f43f5e';
+      const points = prices.map((p, i) => ({
+        x: pad + (i / (prices.length - 1)) * (w - pad * 2),
+        y: h - pad - ((p - min) / range) * (h - pad * 2)
+      }));
+
+      // Градиентная заливка под линией
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, isUp ? 'rgba(16, 185, 129, 0.28)' : 'rgba(244, 63, 94, 0.28)');
+      grad.addColorStop(1, 'rgba(7, 11, 20, 0.0)');
+
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, h);
+      points.forEach(pt => ctx.lineTo(pt.x, pt.y));
+      ctx.lineTo(points[points.length - 1].x, h);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Линия графика
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      points.forEach((pt, i) => {
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.stroke();
+
+      // Точки на графике
+      ctx.fillStyle = color;
+      points.forEach((pt, i) => {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, i === points.length - 1 ? 3.5 : 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function renderStocks() {
+      const container = document.getElementById('stocks-container');
+      let list = marketData.stocks || [];
+      if (currentFilter !== 'ALL') {
+        list = list.filter(s => s.verdict === currentFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = '<div class="stock-card" style="color:var(--text-muted)">Нет акций в этой категории.</div>';
+        return;
+      }
+
+      container.innerHTML = list.map((s, idx) => {
+        const isBuy = s.verdict === 'BUY';
+        const isUp = s.change >= 0;
+        const startDate = (s.dates && s.dates.length) ? s.dates[0] : '7д назад';
+        const endDate = (s.dates && s.dates.length) ? s.dates[s.dates.length - 1] : 'Сегодня';
+        return `
+          <div class="stock-card">
+            <div class="stock-top">
+              <div class="ticker-box">
+                <span class="ticker">${s.ticker}</span>
+                <span class="badge ${isBuy ? 'buy' : 'avoid'}">${isBuy ? '✅ Нужно брать' : '⛔ Не нужно'}</span>
+              </div>
+              <div class="price-box">
+                <div class="price">$${s.price.toFixed(2)}</div>
+                <div class="change ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${s.change.toFixed(2)}%</div>
+              </div>
+            </div>
+            <div class="reason">${s.reason}</div>
+            <div class="chart-wrap">
+              <canvas class="chart" id="chart-${idx}"></canvas>
+              <div class="chart-labels">
+                <span>${startDate}</span>
+                <span>График за 7 дней</span>
+                <span>${endDate}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      list.forEach((s, idx) => {
+        const canvas = document.getElementById(`chart-${idx}`);
+        const weekUp = s.history && s.history.length >= 2 ? (s.history[s.history.length - 1] >= s.history[0]) : (s.change >= 0);
+        drawChart(canvas, s.history, weekUp);
+      });
+    }
+
+    function renderNews() {
+      const container = document.getElementById('news-container');
+      const news = marketData.news_7d || [];
+      document.getElementById('news-count').innerText = news.length + ' шт.';
+      if (news.length === 0) {
+        container.innerHTML = '<div class="news-card" style="color:var(--text-muted)">Новостей за последние 7 дней пока нет.</div>';
+        return;
+      }
+      container.innerHTML = news.map(n => `
+        <div class="news-card">
+          <div class="news-meta">
+            <span class="news-tickers">${n.tickers || 'Рынок'}</span>
+            <span>${n.date || ''}</span>
+          </div>
+          <div class="news-title">${n.title}</div>
+          <div class="news-summary">${n.summary}</div>
+        </div>
+      `).join('');
+    }
+
+    function checkKey() {
+      const key = localStorage.getItem('user_gemini_key');
+      document.getElementById('api-key-setup').style.display = key ? 'none' : 'block';
+    }
+    function saveKey() {
+      const val = document.getElementById('gemini-key-input').value.trim();
+      if (val) {
+        localStorage.setItem('user_gemini_key', val);
+        checkKey();
+      }
+    }
+
+    function quickAsk(text) {
+      document.getElementById('chat-input').value = text;
+      sendMessage();
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const apiKey = localStorage.getItem('user_gemini_key');
+      if (!apiKey) {
+        checkKey();
+        alert('Сначала вставь свой Gemini API Key в поле выше!');
+        return;
+      }
+
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML += `<div class="msg user">${text}</div>`;
+      input.value = '';
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+      const loadingId = 'load-' + Date.now();
+      chatBox.innerHTML += `<div class="msg bear" id="${loadingId}">🐻 Мишка изучает графики...</div>`;
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+      const stocksContext = (marketData.stocks || []).map(s => `${s.ticker}: $${s.price} (${s.change}%), вердикт: ${s.verdict} (${s.reason})`).join('\n');
+      const newsContext = (marketData.news_7d || []).slice(0, 10).map(n => `- ${n.title}: ${n.summary}`).join('\n');
+
+      const systemContext = `Ты Мишка — дружелюбный, умный и слегка ироничный медведь-инвестор в Telegram Mini App. 
+Отвечай на русском языке, кратко, по делу и без звездочек (*). 
+Вот актуальные данные рынка прямо сейчас:
+АКЦИИ:
+${stocksContext}
+
+НОВОСТИ ЗА 7 ДНЕЙ:
+${newsContext}
+
+Пользователь спрашивает: ${text}`;
+
+      const models = ['gemini-3.8-flash', 'gemini-flash-latest'];
+      let reply = null;
+
+      for (const m of models) {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: systemContext }] }] })
+          });
+          const data = await res.json();
+          const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (candidateText) {
+            reply = candidateText;
+            break;
+          }
+        } catch (e) {}
+      }
+
+      document.getElementById(loadingId).innerText = reply || 'Мишка задумался и не смог ответить. Проверь API-ключ.';
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    checkKey();
+
+    fetch('data.json?t=' + Date.now())
+      .then(r => r.json())
+      .then(data => {
+        marketData = data;
+        document.getElementById('updated-time').innerText = data.updated_at || '';
+        renderStock
