@@ -62,11 +62,18 @@ def get_top_news():
         + "\n".join(headlines)
     )
     
-    response = client.models.generate_content(
-        model="gemini-3.0-flash",
-        contents=prompt,
-    )
-    return response.text
+    # Пробуем актуальные модели по очереди, чтобы 100% сработало
+    for model_name in ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3.5-flash"]:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+            )
+            return response.text
+        except Exception as e:
+            print(f"Модель {model_name} не подошла: {e}")
+            
+    return "Не удалось обработать новости через Gemini."
 
 if __name__ == "__main__":
     stock_alerts = check_stocks()
