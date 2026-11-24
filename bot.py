@@ -37,7 +37,6 @@ def check_stocks():
     return alerts
 
 def get_top_news():
-    # Берем новости из CNBC и MarketWatch (не блокируют GitHub)
     rss_urls = [
         "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664",
         "https://feeds.content.dowjones.io/public/rss/mw_topstories"
@@ -64,7 +63,7 @@ def get_top_news():
     )
     
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.0-flash",
         contents=prompt,
     )
     return response.text
@@ -83,4 +82,3 @@ if __name__ == "__main__":
         message += "📰 ГЛАВНЫЕ НОВОСТИ РЫНКА:\n" + news_summary
         
     send_telegram(message)
-    
