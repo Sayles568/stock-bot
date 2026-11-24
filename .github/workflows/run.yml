@@ -5,6 +5,9 @@ on:
     - cron: '0 * * * 1-5'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   run-bot:
     runs-on: ubuntu-latest
@@ -27,3 +30,11 @@ jobs:
           GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: python bot.py
+
+      - name: Сохраняем данные для Mini App
+        run: |
+          git config user.name "StockBot"
+          git config user.email "bot@github.com"
+          git add data.json || true
+          git commit -m "Update market data" || true
+          git push || true
