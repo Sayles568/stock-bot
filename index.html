@@ -9,7 +9,6 @@
     :root {
       --bg-main: #070b14;
       --bg-card: #0f172a;
-      --bg-card-hover: #15203b;
       --border: #1e293b;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
@@ -30,10 +29,8 @@
       color: var(--text-main);
       min-height: 100vh;
     }
-    .page { display: none; animation: fadeIn 0.2s ease; }
+    .page { display: none; }
     .page.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
     .header-bar {
       display: flex;
       justify-content: space-between;
@@ -44,8 +41,6 @@
     }
     .header-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
     .header-sub { font-size: 11px; color: var(--text-muted); background: var(--bg-card); padding: 4px 9px; border-radius: 20px; border: 1px solid var(--border); }
-
-    /* Фильтры на 1 странице */
     .filters { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
     .filter-btn {
       background: var(--bg-card);
@@ -57,7 +52,6 @@
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
-      transition: all 0.15s;
     }
     .filter-btn.active {
       background: linear-gradient(135deg, #0284c7, #2563eb);
@@ -65,8 +59,6 @@
       color: #ffffff;
       box-shadow: 0 4px 14px var(--accent-glow);
     }
-
-    /* Карточка акции */
     .stock-card {
       background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(11, 17, 32, 0.98) 100%);
       border-radius: 16px;
@@ -78,13 +70,7 @@
     .stock-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .ticker-box { display: flex; align-items: center; gap: 8px; }
     .ticker { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.3px; }
-    .badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 8px;
-      letter-spacing: 0.2px;
-    }
+    .badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 8px; }
     .badge.buy { background: var(--green-bg); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
     .badge.avoid { background: var(--red-bg); color: var(--red); border: 1px solid rgba(244, 63, 94, 0.3); }
     .price-box { text-align: right; }
@@ -101,8 +87,6 @@
     }
     canvas.chart { width: 100%; height: 64px; display: block; }
     .chart-labels { display: flex; justify-content: space-between; font-size: 10px; color: #64748b; margin-top: 3px; }
-
-    /* Новости на 2 странице */
     .news-card {
       background: var(--bg-card);
       border-radius: 16px;
@@ -121,8 +105,6 @@
     }
     .news-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; line-height: 1.38; color: #f1f5f9; }
     .news-summary { font-size: 13px; color: var(--text-muted); line-height: 1.45; }
-
-    /* Чат с Мишкой на 3 странице */
     .bear-header {
       background: linear-gradient(135deg, #0f172a 0%, #172554 100%);
       border-radius: 16px;
@@ -187,7 +169,6 @@
       color: #fff;
       align-self: flex-end;
       border-bottom-right-radius: 4px;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
     .suggestions { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 10px; padding-bottom: 2px; }
     .sug-btn {
@@ -212,7 +193,6 @@
       font-size: 14px;
       outline: none;
     }
-    .chat-input-row input:focus { border-color: var(--accent); }
     .chat-input-row button {
       background: linear-gradient(135deg, #0284c7, #2563eb);
       color: #fff;
@@ -222,14 +202,10 @@
       font-weight: 700;
       font-size: 16px;
     }
-
-    /* Нижнее меню */
     .nav {
       position: fixed;
       bottom: 0; left: 0; right: 0;
-      background: rgba(11, 17, 32, 0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: #0b1120;
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-around;
@@ -240,7 +216,6 @@
       background: none; border: none; color: #64748b;
       display: flex; flex-direction: column; align-items: center; gap: 4px;
       font-size: 11px; font-weight: 700; cursor: pointer;
-      transition: color 0.15s;
     }
     .nav-item.active { color: var(--accent); }
     .nav-icon { font-size: 20px; }
@@ -248,21 +223,19 @@
 </head>
 <body>
 
-  <!-- СТРАНИЦА 1: АКЦИИ И ГРАФИКИ -->
   <div id="page-stocks" class="page active">
     <div class="header-bar">
       <div class="header-title">Рынок и скидки</div>
       <div class="header-sub" id="updated-time">Загрузка...</div>
     </div>
     <div class="filters">
-      <button class="filter-btn active" onclick="setFilter('ALL', this)">Все акции</button>
-      <button class="filter-btn" onclick="setFilter('BUY', this)">✅ Нужно брать</button>
-      <button class="filter-btn" onclick="setFilter('AVOID', this)">⛔ Не нужно</button>
+      <button type="button" class="filter-btn active" onclick="setFilter('ALL', this)">Все акции</button>
+      <button type="button" class="filter-btn" onclick="setFilter('BUY', this)">✅ Нужно брать</button>
+      <button type="button" class="filter-btn" onclick="setFilter('AVOID', this)">⛔ Не нужно</button>
     </div>
     <div id="stocks-container">Загрузка графиков и оценок...</div>
   </div>
 
-  <!-- СТРАНИЦА 2: НОВОСТИ ЗА 7 ДНЕЙ -->
   <div id="page-news" class="page">
     <div class="header-bar">
       <div class="header-title">Новости за 7 дней</div>
@@ -271,20 +244,19 @@
     <div id="news-container">Загрузка новостей...</div>
   </div>
 
-  <!-- СТРАНИЦА 3: МИШКА СОВЕТНИК -->
   <div id="page-bear" class="page">
     <div class="bear-header">
       <div class="bear-avatar">🐻</div>
       <div>
         <div style="font-weight: 800; font-size: 16px; color: #fff;">Мишка-Инвестор</div>
-        <div style="font-size: 12px; color: #93c5fd; margin-top: 2px;">Анализирует графики и новости за 7 дней в реальном времени</div>
+        <div style="font-size: 12px; color: #93c5fd; margin-top: 2px;">Анализирует графики и новости за 7 дней</div>
       </div>
     </div>
 
     <div id="api-key-setup" class="key-box" style="display:none;">
-      <div style="color: #e2e8f0;">🔑 Вставь один раз свой Gemini API Key, чтобы Мишка мог отвечать на вопросы (ключ хранится только в твоём телефоне):</div>
+      <div style="color: #e2e8f0;">🔑 Вставь один раз свой Gemini API Key, чтобы Мишка отвечал (ключ хранится только у тебя в телефоне):</div>
       <input type="password" id="gemini-key-input" placeholder="AIzaSy...">
-      <button onclick="saveKey()">Активировать Мишку</button>
+      <button type="button" onclick="saveKey()">Активировать Мишку</button>
     </div>
 
     <div class="chat-box" id="chat-box">
@@ -292,187 +264,182 @@
     </div>
 
     <div class="suggestions">
-      <button class="sug-btn" onclick="quickAsk('Что из списка акций сейчас выгоднее всего купить и почему?')">💡 Что купить сейчас?</button>
-      <button class="sug-btn" onclick="quickAsk('Какие акции сейчас лучше вообще не трогать?')">⛔ Что не нужно брать?</button>
-      <button class="sug-btn" onclick="quickAsk('Что главного произошло на рынке за последние 7 дней?')">📰 Итоги 7 дней</button>
+      <button type="button" class="sug-btn" onclick="quickAsk('Что из списка акций сейчас выгоднее всего купить и почему?')">💡 Что купить сейчас?</button>
+      <button type="button" class="sug-btn" onclick="quickAsk('Какие акции сейчас лучше вообще не трогать?')">⛔ Что не нужно брать?</button>
+      <button type="button" class="sug-btn" onclick="quickAsk('Что главного произошло на рынке за последние 7 дней?')">📰 Итоги 7 дней</button>
     </div>
 
     <div class="chat-input-row">
-      <input type="text" id="chat-input" placeholder="Спроси совет у Мишки..." onkeypress="if(event.key==='Enter') sendMessage()">
-      <button onclick="sendMessage()">➤</button>
+      <input type="text" id="chat-input" placeholder="Спроси совет у Мишки..." onkeydown="if(event.key==='Enter') sendMessage()">
+      <button type="button" onclick="sendMessage()">➤</button>
     </div>
   </div>
 
-  <!-- НИЖНЯЯ НАВИГАЦИЯ -->
   <div class="nav">
-    <button class="nav-item active" onclick="switchTab('stocks', this)">
+    <button type="button" class="nav-item active" onclick="switchTab('stocks', this)">
       <span class="nav-icon">📈</span>
       <span>Акции</span>
     </button>
-    <button class="nav-item" onclick="switchTab('news', this)">
+    <button type="button" class="nav-item" onclick="switchTab('news', this)">
       <span class="nav-icon">📰</span>
       <span>Новости 7д</span>
     </button>
-    <button class="nav-item" onclick="switchTab('bear', this)">
+    <button type="button" class="nav-item" onclick="switchTab('bear', this)">
       <span class="nav-icon">🐻</span>
       <span>Мишка</span>
     </button>
   </div>
 
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    if (tg.setHeaderColor) tg.setHeaderColor('#070b14');
-    if (tg.setBackgroundColor) tg.setBackgroundColor('#070b14');
-
-    let marketData = { stocks: [], news_7d: [], updated_at: "" };
-    let currentFilter = "ALL";
+    var marketData = { stocks: [], news_7d: [], updated_at: "" };
+    var currentFilter = "ALL";
 
     function switchTab(tab, btn) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-      document.getElementById('page-' + tab).classList.add('active');
-      btn.classList.add('active');
+      var pages = document.querySelectorAll('.page');
+      for (var i = 0; i < pages.length; i++) { pages[i].classList.remove('active'); }
+      var navs = document.querySelectorAll('.nav-item');
+      for (var j = 0; j < navs.length; j++) { navs[j].classList.remove('active'); }
+      var target = document.getElementById('page-' + tab);
+      if (target) { target.classList.add('active'); }
+      if (btn) { btn.classList.add('active'); }
       window.scrollTo(0, 0);
     }
 
     function setFilter(filter, btn) {
       currentFilter = filter;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      var btns = document.querySelectorAll('.filter-btn');
+      for (var i = 0; i < btns.length; i++) { btns[i].classList.remove('active'); }
+      if (btn) { btn.classList.add('active'); }
       renderStocks();
     }
 
     function drawChart(canvas, prices, isUp) {
-      if (!prices || prices.length < 2) return;
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      const ctx = canvas.getContext('2d');
+      if (!canvas || !prices || prices.length < 2) return;
+      var dpr = window.devicePixelRatio || 1;
+      var rect = canvas.getBoundingClientRect();
+      var w = rect.width || 280;
+      var h = rect.height || 64;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      var ctx = canvas.getContext('2d');
       ctx.scale(dpr, dpr);
 
-      const w = rect.width;
-      const h = rect.height;
-      const pad = 6;
-      const min = Math.min(...prices);
-      const max = Math.max(...prices);
-      const range = (max - min) || 1;
+      var pad = 6;
+      var min = Math.min.apply(null, prices);
+      var max = Math.max.apply(null, prices);
+      var range = (max - min) || 1;
+      var color = isUp ? '#10b981' : '#f43f5e';
+      var points = [];
 
-      const color = isUp ? '#10b981' : '#f43f5e';
-      const points = prices.map((p, i) => ({
-        x: pad + (i / (prices.length - 1)) * (w - pad * 2),
-        y: h - pad - ((p - min) / range) * (h - pad * 2)
-      }));
+      for (var i = 0; i < prices.length; i++) {
+        points.push({
+          x: pad + (i / (prices.length - 1)) * (w - pad * 2),
+          y: h - pad - ((prices[i] - min) / range) * (h - pad * 2)
+        });
+      }
 
-      // Градиентная заливка под линией
-      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      var grad = ctx.createLinearGradient(0, 0, 0, h);
       grad.addColorStop(0, isUp ? 'rgba(16, 185, 129, 0.28)' : 'rgba(244, 63, 94, 0.28)');
       grad.addColorStop(1, 'rgba(7, 11, 20, 0.0)');
 
       ctx.beginPath();
       ctx.moveTo(points[0].x, h);
-      points.forEach(pt => ctx.lineTo(pt.x, pt.y));
+      for (var k = 0; k < points.length; k++) { ctx.lineTo(points[k].x, points[k].y); }
       ctx.lineTo(points[points.length - 1].x, h);
       ctx.closePath();
       ctx.fillStyle = grad;
       ctx.fill();
 
-      // Линия графика
       ctx.strokeStyle = color;
       ctx.lineWidth = 2.5;
       ctx.lineJoin = 'round';
       ctx.beginPath();
-      points.forEach((pt, i) => {
-        if (i === 0) ctx.moveTo(pt.x, pt.y);
-        else ctx.lineTo(pt.x, pt.y);
-      });
+      for (var m = 0; m < points.length; m++) {
+        if (m === 0) ctx.moveTo(points[m].x, points[m].y);
+        else ctx.lineTo(points[m].x, points[m].y);
+      }
       ctx.stroke();
 
-      // Точки на графике
       ctx.fillStyle = color;
-      points.forEach((pt, i) => {
+      for (var p = 0; p < points.length; p++) {
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, i === points.length - 1 ? 3.5 : 2.2, 0, Math.PI * 2);
+        ctx.arc(points[p].x, points[p].y, p === points.length - 1 ? 3.5 : 2.2, 0, Math.PI * 2);
         ctx.fill();
-      });
+      }
     }
 
     function renderStocks() {
-      const container = document.getElementById('stocks-container');
-      let list = marketData.stocks || [];
+      var container = document.getElementById('stocks-container');
+      var list = marketData.stocks || [];
       if (currentFilter !== 'ALL') {
-        list = list.filter(s => s.verdict === currentFilter);
+        list = list.filter(function(s) { return s.verdict === currentFilter; });
       }
-
       if (list.length === 0) {
         container.innerHTML = '<div class="stock-card" style="color:var(--text-muted)">Нет акций в этой категории.</div>';
         return;
       }
+      var html = '';
+      for (var idx = 0; idx < list.length; idx++) {
+        var s = list[idx];
+        var isBuy = s.verdict === 'BUY';
+        var isUp = s.change >= 0;
+        var startDate = (s.dates && s.dates.length) ? s.dates[0] : '7д назад';
+        var endDate = (s.dates && s.dates.length) ? s.dates[s.dates.length - 1] : 'Сегодня';
+        html += '<div class="stock-card">' +
+          '<div class="stock-top">' +
+            '<div class="ticker-box">' +
+              '<span class="ticker">' + s.ticker + '</span>' +
+              '<span class="badge ' + (isBuy ? 'buy' : 'avoid') + '">' + (isBuy ? '✅ Нужно брать' : '⛔ Не нужно') + '</span>' +
+            '</div>' +
+            '<div class="price-box">' +
+              '<div class="price">$' + Number(s.price).toFixed(2) + '</div>' +
+              '<div class="change ' + (isUp ? 'up' : 'down') + '">' + (isUp ? '+' : '') + Number(s.change).toFixed(2) + '%</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="reason">' + (s.reason || '') + '</div>' +
+          '<div class="chart-wrap">' +
+            '<canvas class="chart" id="chart-' + idx + '"></canvas>' +
+            '<div class="chart-labels"><span>' + startDate + '</span><span>График за 7 дней</span><span>' + endDate + '</span></div>' +
+          '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
 
-      container.innerHTML = list.map((s, idx) => {
-        const isBuy = s.verdict === 'BUY';
-        const isUp = s.change >= 0;
-        const startDate = (s.dates && s.dates.length) ? s.dates[0] : '7д назад';
-        const endDate = (s.dates && s.dates.length) ? s.dates[s.dates.length - 1] : 'Сегодня';
-        return `
-          <div class="stock-card">
-            <div class="stock-top">
-              <div class="ticker-box">
-                <span class="ticker">${s.ticker}</span>
-                <span class="badge ${isBuy ? 'buy' : 'avoid'}">${isBuy ? '✅ Нужно брать' : '⛔ Не нужно'}</span>
-              </div>
-              <div class="price-box">
-                <div class="price">$${s.price.toFixed(2)}</div>
-                <div class="change ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${s.change.toFixed(2)}%</div>
-              </div>
-            </div>
-            <div class="reason">${s.reason}</div>
-            <div class="chart-wrap">
-              <canvas class="chart" id="chart-${idx}"></canvas>
-              <div class="chart-labels">
-                <span>${startDate}</span>
-                <span>График за 7 дней</span>
-                <span>${endDate}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      list.forEach((s, idx) => {
-        const canvas = document.getElementById(`chart-${idx}`);
-        const weekUp = s.history && s.history.length >= 2 ? (s.history[s.history.length - 1] >= s.history[0]) : (s.change >= 0);
-        drawChart(canvas, s.history, weekUp);
-      });
+      for (var c = 0; c < list.length; c++) {
+        var item = list[c];
+        var canvas = document.getElementById('chart-' + c);
+        var weekUp = (item.history && item.history.length >= 2) ? (item.history[item.history.length - 1] >= item.history[0]) : (item.change >= 0);
+        drawChart(canvas, item.history, weekUp);
+      }
     }
 
     function renderNews() {
-      const container = document.getElementById('news-container');
-      const news = marketData.news_7d || [];
+      var container = document.getElementById('news-container');
+      var news = marketData.news_7d || [];
       document.getElementById('news-count').innerText = news.length + ' шт.';
       if (news.length === 0) {
         container.innerHTML = '<div class="news-card" style="color:var(--text-muted)">Новостей за последние 7 дней пока нет.</div>';
         return;
       }
-      container.innerHTML = news.map(n => `
-        <div class="news-card">
-          <div class="news-meta">
-            <span class="news-tickers">${n.tickers || 'Рынок'}</span>
-            <span>${n.date || ''}</span>
-          </div>
-          <div class="news-title">${n.title}</div>
-          <div class="news-summary">${n.summary}</div>
-        </div>
-      `).join('');
+      var html = '';
+      for (var i = 0; i < news.length; i++) {
+        var n = news[i];
+        html += '<div class="news-card">' +
+          '<div class="news-meta"><span class="news-tickers">' + (n.tickers || 'Рынок') + '</span><span>' + (n.date || '') + '</span></div>' +
+          '<div class="news-title">' + n.title + '</div>' +
+          '<div class="news-summary">' + (n.summary || '') + '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
     }
 
     function checkKey() {
-      const key = localStorage.getItem('user_gemini_key');
+      var key = localStorage.getItem('user_gemini_key');
       document.getElementById('api-key-setup').style.display = key ? 'none' : 'block';
     }
+
     function saveKey() {
-      const val = document.getElementById('gemini-key-input').value.trim();
+      var val = document.getElementById('gemini-key-input').value.trim();
       if (val) {
         localStorage.setItem('user_gemini_key', val);
         checkKey();
@@ -485,54 +452,49 @@
     }
 
     async function sendMessage() {
-      const input = document.getElementById('chat-input');
-      const text = input.value.trim();
+      var input = document.getElementById('chat-input');
+      var text = input.value.trim();
       if (!text) return;
 
-      const apiKey = localStorage.getItem('user_gemini_key');
+      var apiKey = localStorage.getItem('user_gemini_key');
       if (!apiKey) {
         checkKey();
         alert('Сначала вставь свой Gemini API Key в поле выше!');
         return;
       }
 
-      const chatBox = document.getElementById('chat-box');
-      chatBox.innerHTML += `<div class="msg user">${text}</div>`;
+      var chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML += '<div class="msg user">' + text.replace(/</g, '&lt;') + '</div>';
       input.value = '';
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 
-      const loadingId = 'load-' + Date.now();
-      chatBox.innerHTML += `<div class="msg bear" id="${loadingId}">🐻 Мишка изучает графики...</div>`;
+      var loadingId = 'load-' + Date.now();
+      chatBox.innerHTML += '<div class="msg bear" id="' + loadingId + '">🐻 Мишка изучает графики...</div>';
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 
-      const stocksContext = (marketData.stocks || []).map(s => `${s.ticker}: $${s.price} (${s.change}%), вердикт: ${s.verdict} (${s.reason})`).join('\n');
-      const newsContext = (marketData.news_7d || []).slice(0, 10).map(n => `- ${n.title}: ${n.summary}`).join('\n');
+      var stocksContext = (marketData.stocks || []).map(function(s) {
+        return s.ticker + ': $' + s.price + ' (' + s.change + '%), вердикт: ' + s.verdict + ' (' + s.reason + ')';
+      }).join('\n');
+      var newsContext = (marketData.news_7d || []).slice(0, 10).map(function(n) {
+        return '- ' + n.title + ': ' + n.summary;
+      }).join('\n');
 
-      const systemContext = `Ты Мишка — дружелюбный, умный и слегка ироничный медведь-инвестор в Telegram Mini App. 
-Отвечай на русском языке, кратко, по делу и без звездочек (*). 
-Вот актуальные данные рынка прямо сейчас:
-АКЦИИ:
-${stocksContext}
+      var systemContext = 'Ты Мишка — дружелюбный и умный медведь-инвестор в Telegram Mini App. Отвечай на русском языке, кратко, по делу и без звездочек (*).\n' +
+        'АКЦИИ:\n' + stocksContext + '\n\nНОВОСТИ ЗА 7 ДНЕЙ:\n' + newsContext + '\n\nВопрос: ' + text;
 
-НОВОСТИ ЗА 7 ДНЕЙ:
-${newsContext}
+      var models = ['gemini-2.5-flash', 'gemini-flash-latest'];
+      var reply = null;
 
-Пользователь спрашивает: ${text}`;
-
-      const models = ['gemini-3.8-flash', 'gemini-flash-latest'];
-      let reply = null;
-
-      for (const m of models) {
+      for (var i = 0; i < models.length; i++) {
         try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`, {
+          var res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + models[i] + ':generateContent?key=' + apiKey, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: systemContext }] }] })
           });
-          const data = await res.json();
-          const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (candidateText) {
-            reply = candidateText;
+          var data = await res.json();
+          if (data && data.candidates && data.candidates[0] && data.candidates[0].content) {
+            reply = data.candidates[0].content.parts[0].text;
             break;
           }
         } catch (e) {}
@@ -542,11 +504,16 @@ ${newsContext}
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
 
+    try {
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.expand();
+        if (window.Telegram.WebApp.setHeaderColor) window.Telegram.WebApp.setHeaderColor('#070b14');
+        if (window.Telegram.WebApp.setBackgroundColor) window.Telegram.WebApp.setBackgroundColor('#070b14');
+      }
+    } catch (e) {}
+
     checkKey();
 
     fetch('data.json?t=' + Date.now())
-      .then(r => r.json())
-      .then(data => {
-        marketData = data;
-        document.getElementById('updated-time').innerText = data.updated_at || '';
-        renderStock
+      .then(function(r) {
+        if (!r.ok) throw new
