@@ -4,8 +4,6 @@ import yfinance as yf
 import feedparser
 from google import genai
 
-print("1. Скрипт запущен")
-
 TG_TOKEN = os.environ["TG_TOKEN"].strip()
 CHAT_ID = os.environ["CHAT_ID"].strip()
 GEMINI_KEY = os.environ["GEMINI_KEY"].strip()
@@ -39,12 +37,22 @@ def check_stocks():
     return alerts
 
 def get_top_news():
-    feed = feedparser.parse("https://finance.yahoo.com/news/rssindex")
-    headlines = [entry.title for entry in feed.entries[:25]]
-    print(f"2. Найдено новостей в RSS: {len(headlines)}")
-    
+    # Берем новости из CNBC и MarketWatch (не блокируют GitHub)
+    rss_urls = [
+        "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664",
+        "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+    ]
+    headlines = []
+    for url in rss_urls:
+        try:
+            feed = feedparser.parse(url)
+            for entry in feed.entries[:15]:
+                headlines.append(entry.title)
+        except Exception as e:
+            print(f"Ошибка RSS {url}: {e}")
+            
     if not headlines:
-        return "Новости не найдены"
+        return "Не удалось загрузить ленту новостей."
         
     client = genai.Client(api_key=GEMINI_KEY)
     prompt = (
@@ -68,9 +76,11 @@ if __name__ == "__main__":
     message = ""
     if stock_alerts:
         message += "🚨 ПАДЕНИЕ ХОРОШИХ АКЦИЙ:\n" + "\n".join(stock_alerts) + "\n\n"
+    else:
+        message += "✅ Сильных падений (>3%) среди отслеживаемых акций нет.\n\n"
     
     if news_summary:
         message += "📰 ГЛАВНЫЕ НОВОСТИ РЫНКА:\n" + news_summary
         
-    print("3. Отправляем сообщение в Telegram...")
     send_telegram(message)
+    
