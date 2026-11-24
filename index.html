@@ -10,15 +10,18 @@
     body{margin:0;padding:14px 14px 84px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#070b14;color:#f8fafc}
     .page{display:none}.page.active{display:block}
     .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1e293b}
-    .title{font-size:18px;font-weight:800}.sub{font-size:11px;color:#94a3b8;background:#0f172a;padding:4px 9px;border-radius:20px;border:1px solid #1e293b}
+    .title{font-size:18px;font-weight:800}.sub{font-size:11px;color:#94a3b8;background:#0f172a;padding:4px 9px;border-radius:20px;border:1px solid #1e293b;display:flex;align-items:center;gap:5px;cursor:pointer}
+    .dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block}
     .filters{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}
     .fbtn{background:#0f172a;color:#94a3b8;border:1px solid #1e293b;padding:8px 13px;border-radius:12px;font-size:13px;font-weight:600;white-space:nowrap}
     .fbtn.active{background:#0284c7;border-color:#38bdf8;color:#fff}
     .card{background:#0f172a;border-radius:16px;padding:14px;margin-bottom:11px;border:1px solid #1e293b}
+    .tv-box{background:#0f172a;border-radius:16px;padding:8px;margin-bottom:12px;border:1px solid #1e293b;overflow:hidden}
+    .sec-lbl{font-size:13px;font-weight:700;color:#94a3b8;margin:4px 0 8px 2px}
     .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
     .ticker{font-size:18px;font-weight:800;margin-right:6px}
     .badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px}
-    .buy{background:rgba(16,185,129,.15);color:#10b981}.avoid{background:rgba(244,63,94,.15);color:#f43f5e}
+    .buy{background:rgba(16,185,129,.15);color:#10b981}.avoid{background:rgba(244,63,94,.15);color:#f43f5e}.wait{background:rgba(148,163,184,.15);color:#94a3b8}
     .price{font-size:16px;font-weight:700;text-align:right}.chg{font-size:13px;font-weight:700;text-align:right}
     .up{color:#10b981}.down{color:#f43f5e}
     .reason{font-size:13px;color:#94a3b8;line-height:1.4;margin-bottom:10px}
@@ -40,19 +43,27 @@
     .sbtn{background:#0f172a;color:#38bdf8;border:1px solid rgba(56,189,248,.3);padding:7px 11px;border-radius:12px;font-size:12px;white-space:nowrap}
     .crow{display:flex;gap:8px}.crow button{background:#0284c7;color:#fff;border:none;border-radius:12px;padding:0 16px;font-weight:700;font-size:16px}
     .nav{position:fixed;bottom:0;left:0;right:0;background:#0b1120;border-top:1px solid #1e293b;display:flex;justify-content:space-around;padding:8px 0 14px;z-index:99}
-    .nbtn{background:none;border:none;color:#64748b;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700}
+    .nbtn{background:none;border:none;color:#64748b;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700;flex:1}
     .nbtn.active{color:#38bdf8}
   </style>
 </head>
 <body>
   <div id="p-stocks" class="page active">
-    <div class="top"><div class="title">Рынок и скидки</div><div class="sub" id="upd">Загрузка...</div></div>
+    <div class="top"><div class="title">Рынок и скидки</div><div class="sub" id="upd" onclick="refreshLive()">Загрузка...</div></div>
     <div class="filters">
       <button type="button" class="fbtn active" onclick="flt('ALL',this)">Все акции</button>
       <button type="button" class="fbtn" onclick="flt('BUY',this)">✅ Нужно брать</button>
       <button type="button" class="fbtn" onclick="flt('AVOID',this)">⛔ Не нужно</button>
     </div>
     <div id="s-list">Загрузка графиков...</div>
+  </div>
+
+  <div id="p-live" class="page">
+    <div class="top"><div class="title">Пульс рынка</div><div class="sub"><span class="dot"></span>LIVE</div></div>
+    <div class="sec-lbl">📉 Лидеры спада и 📈 подъёма прямо сейчас</div>
+    <div class="tv-box" id="tv-movers"></div>
+    <div class="sec-lbl">⚡ Твои 25 акций в реальном времени</div>
+    <div class="tv-box" id="tv-watch"></div>
   </div>
 
   <div id="p-news" class="page">
@@ -77,19 +88,43 @@
   </div>
 
   <div class="nav">
-    <button type="button" class="nbtn active" onclick="tab('stocks',this)"><span style="font-size:20px">📈</span><span>Акции</span></button>
-    <button type="button" class="nbtn" onclick="tab('news',this)"><span style="font-size:20px">📰</span><span>Новости 7д</span></button>
-    <button type="button" class="nbtn" onclick="tab('bear',this)"><span style="font-size:20px">🐻</span><span>Мишка</span></button>
+    <button type="button" class="nbtn active" onclick="tab('stocks',this)"><span style="font-size:19px">📈</span><span>Акции</span></button>
+    <button type="button" class="nbtn" onclick="tab('live',this)"><span style="font-size:19px">⚡</span><span>Лайв</span></button>
+    <button type="button" class="nbtn" onclick="tab('news',this)"><span style="font-size:19px">📰</span><span>Новости 7д</span></button>
+    <button type="button" class="nbtn" onclick="tab('bear',this)"><span style="font-size:19px">🐻</span><span>Мишка</span></button>
   </div>
 
   <script>
-    var db={stocks:[],news_7d:[]},cur='ALL';
+    var TICKERS=['AAPL','MSFT','NVDA','GOOGL','AMZN','META','TSLA','JPM','V','MA','KO','PEP','WMT','COST','DIS','AMD','INTC','NFLX','CRM','ADBE','ORCL','MCD','NKE','BA','XOM'];
+    var db={stocks:[],news_7d:[]},cur='ALL',liveOk=false,busy=false;
+    function addTV(id,src,cfg){
+      var box=document.getElementById(id),w=document.createElement('div'),s=document.createElement('script');
+      w.className='tradingview-widget-container__widget';
+      s.type='text/javascript';s.src=src;s.async=true;s.textContent=JSON.stringify(cfg);
+      box.appendChild(w);box.appendChild(s);
+    }
+    function initLive(){
+      addTV('tv-movers','https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js',{
+        colorTheme:'dark',dateRange:'1D',exchange:'US',showChart:true,locale:'ru',width:'100%',height:'420',
+        isTransparent:true,showSymbolLogo:true,plotLineColorGrowing:'#10b981',plotLineColorFalling:'#f43f5e',
+        gridLineColor:'rgba(30,41,59,0.4)',scaleFontColor:'#94a3b8',
+        belowLineFillColorGrowing:'rgba(16,185,129,0.12)',belowLineFillColorFalling:'rgba(244,63,94,0.12)',
+        belowLineFillColorGrowingBottom:'rgba(16,185,129,0)',belowLineFillColorFallingBottom:'rgba(244,63,94,0)',
+        symbolActiveColor:'rgba(56,189,248,0.15)'
+      });
+      var syms=['NASDAQ:NVDA','NASDAQ:AAPL','NASDAQ:TSLA','NASDAQ:MSFT','NASDAQ:AMZN','NASDAQ:META','NASDAQ:GOOGL','NASDAQ:AMD','NASDAQ:NFLX','NASDAQ:INTC','NASDAQ:ADBE','NASDAQ:COST','NYSE:JPM','NYSE:V','NYSE:MA','NYSE:KO','NYSE:PEP','NYSE:WMT','NYSE:DIS','NYSE:CRM','NYSE:ORCL','NYSE:MCD','NYSE:NKE','NYSE:BA','NYSE:XOM'].map(function(x){return{s:x}});
+      addTV('tv-watch','https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js',{
+        colorTheme:'dark',dateRange:'1D',showChart:true,locale:'ru',width:'100%',height:'460',
+        isTransparent:true,showSymbolLogo:true,tabs:[{title:'Список 25',symbols:syms}]
+      });
+    }
     function tab(t,b){
       document.querySelectorAll('.page').forEach(function(e){e.classList.remove('active')});
       document.querySelectorAll('.nbtn').forEach(function(e){e.classList.remove('active')});
       document.getElementById('p-'+t).classList.add('active');
       b.classList.add('active');
       window.scrollTo(0,0);
+      if(t==='live'&&!liveOk){liveOk=true;initLive();}
     }
     function flt(f,b){
       cur=f;
@@ -114,8 +149,10 @@
       if(cur!=='ALL')ls=ls.filter(function(s){return s.verdict===cur});
       if(!ls.length){el.innerHTML='<div class="card">Нет акций в этой категории.</div>';return}
       el.innerHTML=ls.map(function(s,i){
-        var buy=s.verdict==='BUY',up=s.change>=0,d1=(s.dates&&s.dates[0])||'7д назад',d2=(s.dates&&s.dates[s.dates.length-1])||'Сегодня';
-        return '<div class="card"><div class="row"><div><span class="ticker">'+s.ticker+'</span><span class="badge '+(buy?'buy':'avoid')+'">'+(buy?'✅ Нужно брать':'⛔ Не нужно')+'</span></div><div><div class="price">$'+Number(s.price).toFixed(2)+'</div><div class="chg '+(up?'up':'down')+'">'+(up?'+':'')+Number(s.change).toFixed(2)+'%</div></div></div><div class="reason">'+(s.reason||'')+'</div><div class="cwrap"><canvas id="cv-'+i+'"></canvas><div class="clabels"><span>'+d1+'</span><span>7 дней</span><span>'+d2+'</span></div></div></div>';
+        var buy=s.verdict==='BUY',av=s.verdict==='AVOID',up=s.change>=0;
+        var bCls=buy?'buy':(av?'avoid':'wait'),bTxt=buy?'✅ Нужно брать':(av?'⛔ Не нужно':'⏳ Оценка');
+        var d1=(s.dates&&s.dates[0])||'7д назад',d2=(s.dates&&s.dates[s.dates.length-1])||'Сегодня';
+        return '<div class="card"><div class="row"><div><span class="ticker">'+s.ticker+'</span><span class="badge '+bCls+'">'+bTxt+'</span></div><div><div class="price">$'+Number(s.price).toFixed(2)+'</div><div class="chg '+(up?'up':'down')+'">'+(up?'+':'')+Number(s.change).toFixed(2)+'%</div></div></div><div class="reason">'+(s.reason||'')+'</div><div class="cwrap"><canvas id="cv-'+i+'"></canvas><div class="clabels"><span>'+d1+'</span><span>7 дней</span><span>'+d2+'</span></div></div></div>';
       }).join('');
       ls.forEach(function(s,i){
         var wUp=s.history&&s.history.length>=2?s.history[s.history.length-1]>=s.history[0]:s.change>=0;
@@ -129,6 +166,58 @@
       el.innerHTML=nw.map(function(n){
         return '<div class="card"><div class="row"><span class="ntick">'+(n.tickers||'Рынок')+'</span><span style="font-size:11px;color:#94a3b8">'+(n.date||'')+'</span></div><div class="ntitle">'+n.title+'</div><div class="reason" style="margin:0">'+(n.summary||'')+'</div></div>';
       }).join('');
+    }
+    async function getLiveOne(tk){
+      var u='https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=10d&interval=1d';
+      var urls=['https://corsproxy.io/?'+encodeURIComponent(u),'https://api.allorigins.win/raw?url='+encodeURIComponent(u)];
+      for(var i=0;i<urls.length;i++){
+        try{
+          var r=await fetch(urls[i]);
+          if(!r.ok)continue;
+          var j=await r.json();
+          var res=j&&j.chart&&j.chart.result&&j.chart.result[0];
+          if(!res||!res.timestamp)continue;
+          var cl=res.indicators.quote[0].close||[],pts=[];
+          for(var k=0;k<res.timestamp.length;k++){
+            if(cl[k]!=null){
+              var dt=new Date(res.timestamp[k]*1000);
+              pts.push({d:('0'+dt.getDate()).slice(-2)+'.'+('0'+(dt.getMonth()+1)).slice(-2),c:Number(cl[k].toFixed(2))});
+            }
+          }
+          if(pts.length<2)continue;
+          pts=pts.slice(-7);
+          var mp=res.meta&&res.meta.regularMarketPrice;
+          if(mp)pts[pts.length-1].c=Number(Number(mp).toFixed(2));
+          var pr=pts[pts.length-1].c,pv=pts[pts.length-2].c;
+          return{ticker:tk,price:pr,change:Number((((pr-pv)/pv)*100).toFixed(2)),history:pts.map(function(x){return x.c}),dates:pts.map(function(x){return x.d})};
+        }catch(e){}
+      }
+      return null;
+    }
+    async function refreshLive(){
+      if(busy)return;
+      busy=true;
+      var badge=document.getElementById('upd');
+      badge.innerHTML='<span class="dot" style="background:#38bdf8"></span>Обновляю...';
+      var map={},ok=0;
+      (db.stocks||[]).forEach(function(s){map[s.ticker]=s});
+      for(var i=0;i<TICKERS.length;i+=5){
+        var res=await Promise.all(TICKERS.slice(i,i+5).map(getLiveOne));
+        res.forEach(function(it){
+          if(!it)return;
+          ok++;
+          if(map[it.ticker]){
+            map[it.ticker].price=it.price;map[it.ticker].change=it.change;map[it.ticker].history=it.history;map[it.ticker].dates=it.dates;
+          }else{
+            it.verdict='WAIT';it.reason='Ожидается оценка аналитика';map[it.ticker]=it;
+          }
+        });
+        db.stocks=Object.keys(map).map(function(k){return map[k]}).sort(function(a,b){return a.change-b.change});
+        renderS();
+      }
+      var n=new Date(),tm=('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2);
+      badge.innerHTML=ok?'<span class="dot"></span>Лайв '+tm:(db.updated_at||'Кэш');
+      busy=false;
     }
     function chkK(){document.getElementById('kbox').style.display=localStorage.getItem('user_gemini_key')?'none':'block'}
     function saveK(){var v=document.getElementById('kinp').value.trim();if(v){localStorage.setItem('user_gemini_key',v);chkK()}}
@@ -155,10 +244,9 @@
     try{if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.expand();window.Telegram.WebApp.setHeaderColor('#070b14');window.Telegram.WebApp.setBackgroundColor('#070b14')}}catch(e){}
     chkK();
     fetch('data.json?t='+Date.now()).then(function(r){if(!r.ok)throw 1;return r.json()}).then(function(d){
-      db=d;document.getElementById('upd').innerText=d.updated_at||'Готово';renderS();renderN();
+      db=d;renderS();renderN();refreshLive();
     }).catch(function(){
-      document.getElementById('upd').innerText='Нет data.json';
-      document.getElementById('s-list').innerHTML='<div class="card">Файл data.json не найден. Запусти Run workflow в Actions!</div>';
+      refreshLive();
     });
   </script>
 </body>
