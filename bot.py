@@ -4,21 +4,20 @@ import yfinance as yf
 import feedparser
 from google import genai
 
-# Подтягиваем ключи из настроек GitHub
 TG_TOKEN = os.environ["TG_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 GEMINI_KEY = os.environ["GEMINI_KEY"]
 
-# Список "хороших" акций для отслеживания (можете менять тикеры)
 WATCHLIST = [
     "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", 
     "META", "TSLA", "JPM", "V", "KO", "AMD", "NFLX"
 ]
-DROP_THRESHOLD = -3.0  # Уведомлять, если падение сильнее -3% за день
+DROP_THRESHOLD = -3.0
 
 def send_telegram(text):
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-    requests.post(url, json={"chat_id": CHAT_ID, "text": text, "parse_mode": "HTML"})
+    response = requests.post(url, json={"chat_id": CHAT_ID, "text": text})
+    print("Ответ Telegram:", response.status_code, response.text)
 
 def check_stocks():
     alerts = []
@@ -32,13 +31,12 @@ def check_stocks():
                 change_pct = ((current_price - prev_close) / prev_close) * 100
                 
                 if change_pct <= DROP_THRESHOLD:
-                    alerts.append(f"📉 <b>{ticker}</b> упала на <b>{change_pct:.2f}%</b> (Цена: ${current_price:.2f})")
+                    alerts.append(f"📉 {ticker} упала на {change_pct:.2f}% (Цена: ${current_price:.2f})")
         except Exception as e:
             print(f"Ошибка по {ticker}: {e}")
     return alerts
 
 def get_top_news():
-    # Берем свежие новости Yahoo Finance
     feed = feedparser.parse("https://finance.yahoo.com/news/rssindex")
     headlines = [entry.title for entry in feed.entries[:25]]
     
@@ -49,7 +47,8 @@ def get_top_news():
     prompt = (
         "Ты финансовый аналитик. Из этого списка заголовков выбери максимум 3 самые важные новости, "
         "которые реально влияют на фондовый рынок, экономику или крупные компании. "
-        "Переведи их на русский язык и кратко (в 1-2 предложения) объясни суть каждой.\n\n"
+        "Переведи их на русский язык и кратко (в 1-2 предложения) объясни суть каждой. "
+        "Не используй звездочки и Markdown-разметку.\n\n"
         + "\n".join(headlines)
     )
     
@@ -65,11 +64,11 @@ if __name__ == "__main__":
     
     message = ""
     if stock_alerts:
-        message += "🚨 <b>ПАДЕНИЕ ХОРОШИХ АКЦИЙ:</b>\n" + "\n".join(stock_alerts) + "\n\n"
+        message += "🚨 ПАДЕНИЕ ХОРОШИХ АКЦИЙ:\n" + "\n".join(stock_alerts) + "\n\n"
     
     if news_summary:
-        message += "📰 <b>ГЛАВНЫЕ НОВОСТИ РЫНКА:</b>\n" + news_summary
+        message += "📰 ГЛАВНЫЕ НОВОСТИ РЫНКА:\n" + news_summary
         
     if message:
         send_telegram(message)
-      
+        
