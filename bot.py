@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 import requests
 import yfinance as yf
 import feedparser
@@ -19,7 +19,7 @@ WATCHLIST = [
 ]
 DROP_THRESHOLD = -1.5
 EMERGENCY_DROP = -4.0
-MINI_APP_URL = "https://sayles568.github.io/stock-bot/"
+MINI_APP_URL = "https://t.me/rshsrghiosbot/obvalaciy"
 
 def send_telegram(text, with_button=True):
     url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
@@ -142,102 +142,5 @@ def update_ai_data(stocks_data, headlines, existing_data):
   }},
   "fresh_news": [
     {{"title": "Заголовок новости на русском", "summary": "Суть в 1-2 предложениях на русском", "tickers": "NVDA, AAPL"}}
-    ... (выбери до 5 самых важных новостей о компаниях и рынке)
-  ]
-}}
-"""
-    ai_res = call_gemini_json(prompt)
-    if ai_res:
-        verdicts = ai_res.get("stocks_verdicts", {})
-        for s in stocks_data:
-            v = verdicts.get(s["ticker"])
-            if v:
-                s["verdict"] = "BUY" if v.get("verdict") == "BUY" else "AVOID"
-                s["reason"] = v.get("reason", s["reason"])
 
-        now_str = datetime.now(timezone.utc).strftime("%d.%m.%Y %H:%M")
-        now_ts = datetime.now(timezone.utc).timestamp()
-        old_news = existing_data.get("news_7d", [])
-        # Оставляем новости не старше 7 дней
-        seven_days_ago = now_ts - 7 * 86400
-        valid_old_news = [n for n in old_news if n.get("ts", now_ts) >= seven_days_ago]
-
-        existing_titles = {n["title"] for n in valid_old_news}
-        new_items = []
-        for n in ai_res.get("fresh_news", []):
-            if n.get("title") and n["title"] not in existing_titles:
-                new_items.append({
-                    "title": n["title"],
-                    "summary": n.get("summary", ""),
-                    "tickers": n.get("tickers", "Рынок"),
-                    "date": now_str,
-                    "ts": now_ts
-                })
-        combined_news = (new_items + valid_old_news)[:40]
-    else:
-        combined_news = existing_data.get("news_7d", [])
-
-    final_data = {
-        "updated_at": datetime.now(timezone.utc).strftime("%d.%m.%Y %H:%M UTC"),
-        "stocks": stocks_data,
-        "news_7d": combined_news
-    }
-    with open("data.json", "w", encoding="utf-8") as f:
-        json.dump(final_data, f, ensure_ascii=False, indent=2)
-    return final_data
-
-def check_emergency_news(headlines):
-    if not headlines:
-        return None
-    prompt = (
-        "Ты риск-менеджер. Посмотри на заголовки:\n" + "\n".join(headlines) +
-        "\n\nЕсть ли тут ЭКСТРЕННАЯ ситуация: начало войны, экстренное решение ФРС, банкротство крупного банка, обвал рынков? "
-        "Если НЕТ — ответь строго: НЕТ\n"
-        "Если ЕСТЬ — опиши в 2 предложениях на русском без звездочек."
-    )
-    res = call_gemini_text(prompt)
-    if not res or res.strip(".").upper() == "НЕТ":
-        return None
-    return res
-
-if __name__ == "__main__":
-    current_hour_utc = datetime.now(timezone.utc).hour
-    is_scheduled = (current_hour_utc % 5 == 0) or (EVENT_NAME == "workflow_dispatch")
-
-    existing_data = load_existing_data()
-    stocks_data, drops, emergency_drops = check_stocks()
-    headlines = get_raw_headlines()
-
-    # Обновляем базу для Mini App при каждом запуске
-    final_data = update_ai_data(stocks_data, headlines, existing_data)
-
-    if is_scheduled:
-        buy_list = [s for s in final_data["stocks"] if s["verdict"] == "BUY"][:4]
-        msg = "📊 ПЛАНОВАЯ СВОДКА РЫНКА\n\n📉 УПАВШИЕ АКЦИИ:\n"
-        if drops:
-            for s in drops[:6]:
-                msg += f"• {s['ticker']}: {s['change']}% (${s['price']})\n"
-        else:
-            msg += "Сильных падений (>1.5%) сегодня нет.\n"
-
-        if buy_list:
-            msg += "\n✅ ЧТО СЕЙЧАС НУЖНО БРАТЬ (МНЕНИЕ ИИ):\n"
-            for s in buy_list:
-                msg += f"• {s['ticker']} (${s['price']}): {s['reason']}\n"
-
-        msg += "\n👇 Графики всех 25 акций, новости за 7 дней и чат с Мишкой внутри приложения:"
-        send_telegram(msg, with_button=True)
-    else:
-        urgent_news = check_emergency_news(headlines)
-        if emergency_drops or urgent_news:
-            alert_msg = "🚨 ЭКСТРЕННОЕ СООБЩЕНИЕ ПО РЫНКУ!\n\n"
-            if emergency_drops:
-                alert_msg += "💥 СИЛЬНЫЙ ОБВАЛ (>4%):\n"
-                for s in emergency_drops:
-                    alert_msg += f"• {s['ticker']}: {s['change']}% (${s['price']})\n"
-                alert_msg += "\n"
-            if urgent_news:
-                alert_msg += f"⚡ СРОЧНАЯ НОВОСТЬ:\n{urgent_news}\n"
-            send_telegram(alert_msg, with_button=True)
-        else:
-            print("Экстренных событий нет, данные для Mini App обновлены.")
+    
