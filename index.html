@@ -1,305 +1,201 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Скидки на рынке</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{margin:0;padding:14px 14px 84px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#070b14;color:#f8fafc}
-    .page{display:none}.page.active{display:block}
-    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1e293b}
-    .title{font-size:18px;font-weight:800}.sub{font-size:11px;color:#94a3b8;background:#0f172a;padding:5px 10px;border-radius:20px;border:1px solid #1e293b;display:flex;align-items:center;gap:5px;cursor:pointer}
-    .dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block}
-    .filters{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}
-    .fbtn{background:#0f172a;color:#94a3b8;border:1px solid #1e293b;padding:8px 13px;border-radius:12px;font-size:13px;font-weight:600;white-space:nowrap}
-    .fbtn.active{background:#0284c7;border-color:#38bdf8;color:#fff}
-    .card{background:#0f172a;border-radius:16px;padding:14px;margin-bottom:11px;border:1px solid #1e293b}
-    .tv-box{background:#0f172a;border-radius:16px;padding:8px;margin-bottom:12px;border:1px solid #1e293b;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
-    .tv-box iframe{touch-action:pan-y !important}
-    .sec-lbl{font-size:13px;font-weight:700;color:#94a3b8;margin:4px 0 8px 2px}
-    .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-    .ticker{font-size:18px;font-weight:800;margin-right:6px}
-    .badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px}
-    .buy{background:rgba(16,185,129,.15);color:#10b981}.avoid{background:rgba(244,63,94,.15);color:#f43f5e}.wait{background:rgba(148,163,184,.15);color:#94a3b8}
-    .price{font-size:16px;font-weight:700;text-align:right}.chg{font-size:13px;font-weight:700;text-align:right}
-    .up{color:#10b981}.down{color:#f43f5e}
-    .reason{font-size:13px;color:#94a3b8;line-height:1.4;margin-bottom:10px}
-    .cwrap{background:#070b14;border-radius:10px;padding:6px 8px 4px;border:1px solid #1e293b}
-    canvas{width:100%;height:60px;display:block}
-    .clabels{display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-top:3px}
-    .ntick{color:#38bdf8;background:rgba(56,189,248,.12);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
-    .ntitle{font-size:15px;font-weight:700;margin:6px 0;line-height:1.35}
-    .ai-box{background:linear-gradient(135deg,#0f172a,#172554);border:1px solid #1e3a8a;border-radius:16px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-    .ai-left{display:flex;align-items:center;gap:11px}
-    .avatar{color:#38bdf8;background:rgba(56,189,248,.14);border:1px solid rgba(56,189,248,.3);width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:14px;flex-shrink:0}
-    .kbtn{background:rgba(56,189,248,.14);color:#38bdf8;border:1px solid rgba(56,189,248,.35);padding:7px 10px;border-radius:11px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer}
-    .kbox{background:#0f172a;padding:12px;border-radius:14px;margin-bottom:12px;font-size:13px;border:1px solid #1d4ed8}
-    .kbox input,.crow input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #1e293b;background:#070b14;color:#fff;font-size:14px;outline:none}
-    .krow{display:flex;gap:8px;margin-top:8px}
-    .kbox button{background:#0284c7;color:#fff;border:none;padding:9px;border-radius:10px;font-weight:700;flex:1;cursor:pointer}
-    .kbox button.del{background:#1e293b;color:#f43f5e;flex:0.45}
-    .chat{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;min-height:220px}
-    .msg{padding:10px 13px;border-radius:15px;max-width:86%;font-size:14px;line-height:1.4;white-space:pre-line}
-    .ai-msg{background:#0f172a;border:1px solid #1e293b;align-self:flex-start}
-    .user{background:#0284c7;color:#fff;align-self:flex-end}
-    .sugs{display:flex;gap:8px;overflow-x:auto;margin-bottom:10px}
-    .sbtn{background:#0f172a;color:#38bdf8;border:1px solid rgba(56,189,248,.3);padding:7px 11px;border-radius:12px;font-size:12px;white-space:nowrap}
-    .crow{display:flex;gap:8px}.crow button{background:#0284c7;color:#fff;border:none;border-radius:12px;padding:0 16px;font-weight:700;font-size:16px}
-    .nav{position:fixed;bottom:0;left:0;right:0;background:#0b1120;border-top:1px solid #1e293b;display:flex;justify-content:space-around;padding:7px 0 13px;z-index:99}
-    .nbtn{background:none;border:none;color:#64748b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:700;flex:1}
-    .nbtn.active{color:#38bdf8}
-    .nicon{height:22px;display:flex;align-items:center;justify-content:center;font-size:19px}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Скидки на рынке</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:14px 14px 84px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#070b14;color:#f8fafc}
+.page{display:none}.page.active{display:block}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1e293b}
+.title{font-size:18px;font-weight:800}.sub{font-size:11px;color:#94a3b8;background:#0f172a;padding:5px 10px;border-radius:20px;border:1px solid #1e293b;display:flex;align-items:center;gap:5px;cursor:pointer}
+.dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;display:inline-block}
+.filters{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}
+.fbtn{background:#0f172a;color:#94a3b8;border:1px solid #1e293b;padding:8px 13px;border-radius:12px;font-size:13px;font-weight:600;white-space:nowrap}
+.fbtn.active{background:#0284c7;border-color:#38bdf8;color:#fff}
+.card{background:#0f172a;border-radius:16px;padding:14px;margin-bottom:11px;border:1px solid #1e293b}
+.tv-box{background:#0f172a;border-radius:16px;padding:6px;margin-bottom:12px;border:1px solid #1e293b;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sec-lbl{font-size:13px;font-weight:700;color:#94a3b8;margin:4px 0 8px 2px}
+.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ticker{font-size:18px;font-weight:800;margin-right:6px}.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px}
+.buy{background:rgba(16,185,129,.15);color:#10b981}.avoid{background:rgba(244,63,94,.15);color:#f43f5e}.wait{background:rgba(148,163,184,.15);color:#94a3b8}
+.price{font-size:16px;font-weight:700;text-align:right}.chg{font-size:13px;font-weight:700;text-align:right}
+.up{color:#10b981}.down{color:#f43f5e}.reason{font-size:13px;color:#94a3b8;line-height:1.4;margin-bottom:10px}
+.cwrap{background:#070b14;border-radius:10px;padding:6px 8px 4px;border:1px solid #1e293b}
+canvas{width:100%;height:60px;display:block}.clabels{display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-top:3px}
+.ntick{color:#38bdf8;background:rgba(56,189,248,.12);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
+.ntitle{font-size:15px;font-weight:700;margin:6px 0;line-height:1.35}
+.ai-box{background:linear-gradient(135deg,#0f172a,#172554);border:1px solid #1e3a8a;border-radius:16px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.ai-left{display:flex;align-items:center;gap:11px}
+.avatar{color:#38bdf8;background:rgba(56,189,248,.14);border:1px solid rgba(56,189,248,.3);width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:14px;flex-shrink:0}
+.kbtn{background:rgba(56,189,248,.14);color:#38bdf8;border:1px solid rgba(56,189,248,.35);padding:7px 10px;border-radius:11px;font-size:11px;font-weight:700;white-space:nowrap}
+.kbox{background:#0f172a;padding:12px;border-radius:14px;margin-bottom:12px;font-size:13px;border:1px solid #1d4ed8}
+.kbox input,.crow input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #1e293b;background:#070b14;color:#fff;font-size:14px;outline:none}
+.krow{display:flex;gap:8px;margin-top:8px}.kbox button{background:#0284c7;color:#fff;border:none;padding:9px;border-radius:10px;font-weight:700;flex:1}.kbox button.del{background:#1e293b;color:#f43f5e;flex:.45}
+.chat{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;min-height:210px}
+.msg{padding:10px 13px;border-radius:15px;max-width:86%;font-size:14px;line-height:1.4;white-space:pre-line}
+.ai-msg{background:#0f172a;border:1px solid #1e293b;align-self:flex-start}.user{background:#0284c7;color:#fff;align-self:flex-end}
+.sugs{display:flex;gap:8px;overflow-x:auto;margin-bottom:10px}
+.sbtn{background:#0f172a;color:#38bdf8;border:1px solid rgba(56,189,248,.3);padding:7px 11px;border-radius:12px;font-size:12px;white-space:nowrap}
+.crow{display:flex;gap:8px}.crow button{background:#0284c7;color:#fff;border:none;border-radius:12px;padding:0 16px;font-weight:700;font-size:16px}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#0b1120;border-top:1px solid #1e293b;display:flex;justify-content:space-around;padding:7px 0 13px;z-index:99}
+.nbtn{background:none;border:none;color:#64748b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:700;flex:1}
+.nbtn.active{color:#38bdf8}.nicon{height:22px;display:flex;align-items:center;justify-content:center;font-size:19px}
+</style>
 </head>
 <body>
-  <div id="p-stocks" class="page active">
-    <div class="top"><div class="title">Рынок и скидки</div><div class="sub" id="upd" onclick="refreshLive()">Загрузка...</div></div>
-    <div class="filters">
-      <button type="button" class="fbtn active" onclick="flt('ALL',this)">Все акции</button>
-      <button type="button" class="fbtn" onclick="flt('BUY',this)">✅ Нужно брать</button>
-      <button type="button" class="fbtn" onclick="flt('AVOID',this)">⛔ Не нужно</button>
-    </div>
-    <div id="s-list">Загрузка графиков...</div>
+<div id="p-stocks" class="page active">
+  <div class="top"><div class="title">Рынок и скидки</div><div class="sub" id="upd" onclick="refreshLive()">Загрузка...</div></div>
+  <div class="filters"><button type="button" class="fbtn active" onclick="flt('ALL',this)">Все акции</button><button type="button" class="fbtn" onclick="flt('BUY',this)">✅ Нужно брать</button><button type="button" class="fbtn" onclick="flt('AVOID',this)">⛔ Не нужно</button></div>
+  <div id="s-list">Загрузка графиков...</div>
+</div>
+<div id="p-live" class="page">
+  <div class="top"><div class="title">Пульс рынка</div><div class="sub"><span class="dot"></span>LIVE</div></div>
+  <div class="sec-lbl">📉 Лидеры спада и 📈 подъёма прямо сейчас</div><div class="tv-box" id="tv-movers"></div>
+  <div class="sec-lbl">⚡ Твои 25 акций в реальном времени</div><div class="tv-box" id="tv-watch"></div>
+</div>
+<div id="p-news" class="page">
+  <div class="top"><div class="title">Новости за 7 дней</div><div class="sub" id="ncnt" onclick="refreshNews()">Обновление...</div></div>
+  <div id="n-list">Загрузка новостей...</div>
+</div>
+<div id="p-ai" class="page">
+  <div class="ai-box">
+    <div class="ai-left"><div class="avatar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="4"/><path d="M12 2v4"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><path d="M9 16h6"/></svg></div><div><div style="font-weight:800;font-size:16px">ИИ Партнёр</div><div style="font-size:12px;color:#93c5fd">Аналитика акций и новостей 24/7</div></div></div>
+    <button type="button" class="kbtn" onclick="toggleK()">🔑 API токен</button>
   </div>
-
-  <div id="p-live" class="page">
-    <div class="top"><div class="title">Пульс рынка</div><div class="sub"><span class="dot"></span>LIVE</div></div>
-    <div class="sec-lbl">📉 Лидеры спада и 📈 подъёма прямо сейчас</div>
-    <div class="tv-box" id="tv-movers"></div>
-    <div class="sec-lbl">⚡ Твои 25 акций в реальном времени</div>
-    <div class="tv-box" id="tv-watch"></div>
+  <div id="kbox" class="kbox" style="display:none">
+    <div id="kstat" style="color:#93c5fd;font-size:12px;margin-bottom:6px"></div>
+    <div>🔑 Вставь свой Gemini API токен (хранится только в телефоне):</div>
+    <input type="password" id="kinp" placeholder="AIzaSy...">
+    <div class="krow"><button type="button" onclick="saveK()">Сохранить</button><button type="button" class="del" onclick="clearK()">Сброс</button></div>
   </div>
-
-  <div id="p-news" class="page">
-    <div class="top"><div class="title">Новости за 7 дней</div><div class="sub" id="ncnt" onclick="refreshNews()">Обновление...</div></div>
-    <div id="n-list">Загрузка новостей...</div>
-  </div>
-
-  <div id="p-ai" class="page">
-    <div class="ai-box">
-      <div class="ai-left">
-        <div class="avatar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="4"/><path d="M12 2v4"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><path d="M9 16h6"/></svg></div>
-        <div><div style="font-weight:800;font-size:16px">ИИ Партнёр</div><div style="font-size:12px;color:#93c5fd">Аналитика акций и новостей 24/7</div></div>
-      </div>
-      <button type="button" class="kbtn" onclick="toggleK()">🔑 API токен</button>
-    </div>
-    <div id="kbox" class="kbox" style="display:none">
-      <div id="kstat" style="color:#93c5fd;font-size:12px;margin-bottom:6px"></div>
-      <div>🔑 Вставь свой Gemini API токен (хранится только в телефоне):</div>
-      <input type="password" id="kinp" placeholder="AIzaSy...">
-      <div class="krow">
-        <button type="button" onclick="saveK()">Сохранить токен</button>
-        <button type="button" class="del" onclick="clearK()">Сброс</button>
-      </div>
-    </div>
-    <div class="chat" id="chat"><div class="msg ai-msg">Привет! Я твой ИИ партнёр. Слежу за графиками всех 25 компаний и живыми новостями. Спрашивай, что сейчас выгодно взять со скидкой!</div></div>
-    <div class="sugs">
-      <button type="button" class="sbtn" onclick="qAsk('Что из акций сейчас выгоднее всего купить и почему?')">💡 Что купить?</button>
-      <button type="button" class="sbtn" onclick="qAsk('Какие акции сейчас лучше не брать?')">⛔ Что не брать?</button>
-      <button type="button" class="sbtn" onclick="qAsk('Что главного произошло на рынке за последние дни?')">📰 Итоги рынка</button>
-    </div>
-    <div class="crow"><input type="text" id="cinp" placeholder="Спроси у ИИ партнёра..." onkeydown="if(event.key==='Enter')send()"><button type="button" onclick="send()">➤</button></div>
-  </div>
-
-  <div class="nav">
-    <button type="button" class="nbtn active" onclick="tab('stocks',this)"><span class="nicon">📈</span><span>Акции</span></button>
-    <button type="button" class="nbtn" onclick="tab('live',this)"><span class="nicon">⚡</span><span>Лайв</span></button>
-    <button type="button" class="nbtn" onclick="tab('news',this)"><span class="nicon">📰</span><span>Новости 7д</span></button>
-    <button type="button" class="nbtn" onclick="tab('ai',this)"><span class="nicon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="4"/><path d="M12 2v4"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><path d="M9 16h6"/></svg></span><span>ИИ партнёр</span></button>
-  </div>
-
-  <script>
-    var TICKERS=['AAPL','MSFT','NVDA','GOOGL','AMZN','META','TSLA','JPM','V','MA','KO','PEP','WMT','COST','DIS','AMD','INTC','NFLX','CRM','ADBE','ORCL','MCD','NKE','BA','XOM'];
-    var db={stocks:[],news_7d:[]},liveNews=[],cur='ALL',liveOk=false,busy=false,newsBusy=false;
-    function fixFrame(box){
-      var obs=new MutationObserver(function(){
-        var fr=box.querySelector('iframe');
-        if(fr){fr.setAttribute('scrolling','yes');fr.style.touchAction='pan-y';}
-      });
-      obs.observe(box,{childList:true,subtree:true});
-    }
-    function addTV(id,src,cfg){
-      var box=document.getElementById(id),w=document.createElement('div'),s=document.createElement('script');
-      fixFrame(box);
-      w.className='tradingview-widget-container__widget';
-      s.type='text/javascript';s.src=src;s.async=true;s.textContent=JSON.stringify(cfg);
-      box.appendChild(w);box.appendChild(s);
-    }
-    function initLive(){
-      addTV('tv-movers','https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js',{
-        colorTheme:'dark',dateRange:'1D',exchange:'US',showChart:true,locale:'ru',width:'100%',height:'580',
-        isTransparent:true,showSymbolLogo:true,plotLineColorGrowing:'#10b981',plotLineColorFalling:'#f43f5e',
-        gridLineColor:'rgba(30,41,59,0.4)',scaleFontColor:'#94a3b8',
-        belowLineFillColorGrowing:'rgba(16,185,129,0.12)',belowLineFillColorFalling:'rgba(244,63,94,0.12)',
-        belowLineFillColorGrowingBottom:'rgba(16,185,129,0)',belowLineFillColorFallingBottom:'rgba(244,63,94,0)',
-        symbolActiveColor:'rgba(56,189,248,0.15)'
-      });
-      var syms=['NASDAQ:NVDA','NASDAQ:AAPL','NASDAQ:TSLA','NASDAQ:MSFT','NASDAQ:AMZN','NASDAQ:META','NASDAQ:GOOGL','NASDAQ:AMD','NASDAQ:NFLX','NASDAQ:INTC','NASDAQ:ADBE','NASDAQ:COST','NYSE:JPM','NYSE:V','NYSE:MA','NYSE:KO','NYSE:PEP','NYSE:WMT','NYSE:DIS','NYSE:CRM','NYSE:ORCL','NYSE:MCD','NYSE:NKE','NYSE:BA','NYSE:XOM'].map(function(x){return{s:x}});
-      addTV('tv-watch','https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js',{
-        colorTheme:'dark',dateRange:'1D',showChart:true,locale:'ru',width:'100%',height:'460',
-        isTransparent:true,showSymbolLogo:true,tabs:[{title:'Список 25',symbols:syms}]
-      });
-    }
-    function tab(t,b){
-      document.querySelectorAll('.page').forEach(function(e){e.classList.remove('active')});
-      document.querySelectorAll('.nbtn').forEach(function(e){e.classList.remove('active')});
-      document.getElementById('p-'+t).classList.add('active');
-      b.classList.add('active');
-      window.scrollTo(0,0);
-      if(t==='live'&&!liveOk){liveOk=true;initLive();}
-      if(t==='news'){refreshNews();}
-    }
-    function flt(f,b){
-      cur=f;
-      document.querySelectorAll('.fbtn').forEach(function(e){e.classList.remove('active')});
-      b.classList.add('active');
-      renderS();
-    }
-    function chart(cv,pr,up){
-      if(!cv||!pr||pr.length<2)return;
-      var d=window.devicePixelRatio||1,r=cv.getBoundingClientRect(),w=r.width||280,h=r.height||60;
-      cv.width=w*d;cv.height=h*d;
-      var c=cv.getContext('2d');c.scale(d,d);
-      var mn=Math.min.apply(null,pr),mx=Math.max.apply(null,pr),rg=(mx-mn)||1,col=up?'#10b981':'#f43f5e',pts=[];
-      for(var i=0;i<pr.length;i++)pts.push({x:6+(i/(pr.length-1))*(w-12),y:h-6-((pr[i]-mn)/rg)*(h-12)});
-      c.strokeStyle=col;c.lineWidth=2.5;c.beginPath();
-      pts.forEach(function(p,i){i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)});
-      c.stroke();c.fillStyle=col;
-      pts.forEach(function(p){c.beginPath();c.arc(p.x,p.y,2.8,0,6.28);c.fill()});
-    }
-    function renderS(){
-      var el=document.getElementById('s-list'),ls=db.stocks||[];
-      if(cur!=='ALL')ls=ls.filter(function(s){return s.verdict===cur});
-      if(!ls.length){el.innerHTML='<div class="card">Нет акций в этой категории.</div>';return}
-      el.innerHTML=ls.map(function(s,i){
-        var buy=s.verdict==='BUY',av=s.verdict==='AVOID',up=s.change>=0;
-        var bCls=buy?'buy':(av?'avoid':'wait'),bTxt=buy?'✅ Нужно брать':(av?'⛔ Не нужно':'⏳ Оценка');
-        var d1=(s.dates&&s.dates[0])||'7д назад',d2=(s.dates&&s.dates[s.dates.length-1])||'Сегодня';
-        return '<div class="card"><div class="row"><div><span class="ticker">'+s.ticker+'</span><span class="badge '+bCls+'">'+bTxt+'</span></div><div><div class="price">$'+Number(s.price).toFixed(2)+'</div><div class="chg '+(up?'up':'down')+'">'+(up?'+':'')+Number(s.change).toFixed(2)+'%</div></div></div><div class="reason">'+(s.reason||'')+'</div><div class="cwrap"><canvas id="cv-'+i+'"></canvas><div class="clabels"><span>'+d1+'</span><span>7 дней</span><span>'+d2+'</span></div></div></div>';
-      }).join('');
-      ls.forEach(function(s,i){
-        var wUp=s.history&&s.history.length>=2?s.history[s.history.length-1]>=s.history[0]:s.change>=0;
-        chart(document.getElementById('cv-'+i),s.history,wUp);
-      });
-    }
-    function renderN(){
-      var el=document.getElementById('n-list'),seen={},all=[];
-      liveNews.concat(db.news_7d||[]).forEach(function(n){
-        if(n&&n.title&&!seen[n.title]){seen[n.title]=1;all.push(n);}
-      });
-      var tm=('0'+new Date().getHours()).slice(-2)+':'+('0'+new Date().getMinutes()).slice(-2);
-      document.getElementById('ncnt').innerHTML='<span class="dot"></span>'+all.length+' шт. • '+tm;
-      if(!all.length){el.innerHTML='<div class="card">Новостей пока нет.</div>';return}
-      el.innerHTML=all.map(function(n){
-        return '<div class="card"><div class="row"><span class="ntick">'+(n.tickers||'Рынок')+'</span><span style="font-size:11px;color:#94a3b8">'+(n.date||'')+'</span></div><div class="ntitle">'+n.title+'</div><div class="reason" style="margin:0">'+(n.summary||'')+'</div></div>';
-      }).join('');
-    }
-    async function fetchProxied(u){
-      var ps=['https://corsproxy.io/?'+encodeURIComponent(u),'https://api.allorigins.win/raw?url='+encodeURIComponent(u)];
-      for(var i=0;i<ps.length;i++){
-        try{var r=await fetch(ps[i]);if(r.ok)return await r.text();}catch(e){}
+  <div class="chat" id="chat"><div class="msg ai-msg">Привет! Я твой ИИ партнёр. Слежу за графиками 25 компаний и свежими новостями. Спрашивай, что сейчас выгодно взять!</div></div>
+  <div class="sugs"><button type="button" class="sbtn" onclick="qAsk('Что из акций сейчас выгоднее всего купить и почему?')">💡 Что купить?</button><button type="button" class="sbtn" onclick="qAsk('Какие акции сейчас лучше не брать?')">⛔ Что не брать?</button><button type="button" class="sbtn" onclick="qAsk('Что главного произошло на рынке за последние дни?')">📰 Итоги рынка</button></div>
+  <div class="crow"><input type="text" id="cinp" placeholder="Спроси у ИИ партнёра..." onkeydown="if(event.key==='Enter')send()"><button type="button" onclick="send()">➤</button></div>
+</div>
+<div class="nav">
+  <button type="button" class="nbtn active" onclick="tab('stocks',this)"><span class="nicon">📈</span><span>Акции</span></button>
+  <button type="button" class="nbtn" onclick="tab('live',this)"><span class="nicon">⚡</span><span>Лайв</span></button>
+  <button type="button" class="nbtn" onclick="tab('news',this)"><span class="nicon">📰</span><span>Новости 7д</span></button>
+  <button type="button" class="nbtn" onclick="tab('ai',this)"><span class="nicon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><rect x="3" y="6" width="18" height="13" rx="4"/><path d="M12 2v4"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><path d="M9 16h6"/></svg></span><span>ИИ партнёр</span></button>
+</div>
+<script>
+var TKS=['AAPL','MSFT','NVDA','GOOGL','AMZN','META','TSLA','JPM','V','MA','KO','PEP','WMT','COST','DIS','AMD','INTC','NFLX','CRM','ADBE','ORCL','MCD','NKE','BA','XOM'];
+var db={stocks:[],news_7d:[]},liveNews=[],cur='ALL',liveOk=false,busy=false,nBusy=false;
+function tab(t,b){
+  document.querySelectorAll('.page').forEach(function(e){e.classList.remove('active')});
+  document.querySelectorAll('.nbtn').forEach(function(e){e.classList.remove('active')});
+  document.getElementById('p-'+t).classList.add('active');b.classList.add('active');window.scrollTo(0,0);
+  if(t==='live'&&!liveOk){liveOk=true;initLive()}
+  if(t==='news')refreshNews();
+}
+function flt(f,b){cur=f;document.querySelectorAll('.fbtn').forEach(function(e){e.classList.remove('active')});b.classList.add('active');renderS()}
+function addTV(id,src,cfg){var box=document.getElementById(id),w=document.createElement('div'),s=document.createElement('script');w.className='tradingview-widget-container__widget';s.type='text/javascript';s.src=src;s.async=true;s.textContent=JSON.stringify(cfg);box.appendChild(w);box.appendChild(s)}
+function initLive(){
+  addTV('tv-movers','https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js',{colorTheme:'dark',dateRange:'1D',exchange:'US',showChart:true,locale:'ru',width:'100%',height:'540',isTransparent:true,showSymbolLogo:true,plotLineColorGrowing:'#10b981',plotLineColorFalling:'#f43f5e'});
+  var syms=['NASDAQ:NVDA','NASDAQ:AAPL','NASDAQ:TSLA','NASDAQ:MSFT','NASDAQ:AMZN','NASDAQ:META','NASDAQ:GOOGL','NASDAQ:AMD','NASDAQ:NFLX','NASDAQ:INTC','NASDAQ:ADBE','NASDAQ:COST','NYSE:JPM','NYSE:V','NYSE:MA','NYSE:KO','NYSE:PEP','NYSE:WMT','NYSE:DIS','NYSE:CRM','NYSE:ORCL','NYSE:MCD','NYSE:NKE','NYSE:BA','NYSE:XOM'].map(function(x){return{s:x}});
+  addTV('tv-watch','https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js',{colorTheme:'dark',dateRange:'1D',showChart:true,locale:'ru',width:'100%',height:'460',isTransparent:true,showSymbolLogo:true,tabs:[{title:'Список 25',symbols:syms}]});
+}
+function chart(cv,pr,up){
+  if(!cv||!pr||pr.length<2)return;
+  var d=window.devicePixelRatio||1,r=cv.getBoundingClientRect(),w=r.width||280,h=r.height||60;cv.width=w*d;cv.height=h*d;
+  var c=cv.getContext('2d');c.scale(d,d);var mn=Math.min.apply(null,pr),mx=Math.max.apply(null,pr),rg=(mx-mn)||1,col=up?'#10b981':'#f43f5e',pts=[];
+  for(var i=0;i<pr.length;i++)pts.push({x:6+(i/(pr.length-1))*(w-12),y:h-6-((pr[i]-mn)/rg)*(h-12)});
+  c.strokeStyle=col;c.lineWidth=2.5;c.beginPath();pts.forEach(function(p,i){i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)});c.stroke();c.fillStyle=col;
+  pts.forEach(function(p){c.beginPath();c.arc(p.x,p.y,2.8,0,6.28);c.fill()});
+}
+function renderS(){
+  var el=document.getElementById('s-list'),ls=db.stocks||[];if(cur!=='ALL')ls=ls.filter(function(s){return s.verdict===cur});
+  if(!ls.length){el.innerHTML='<div class="card">Нет акций в этой категории.</div>';return}
+  el.innerHTML=ls.map(function(s,i){
+    var buy=s.verdict==='BUY',av=s.verdict==='AVOID',up=s.change>=0,bc=buy?'buy':(av?'avoid':'wait'),bt=buy?'✅ Нужно брать':(av?'⛔ Не нужно':'⏳ Оценка');
+    var d1=(s.dates&&s.dates[0])||'7д назад',d2=(s.dates&&s.dates[s.dates.length-1])||'Сегодня';
+    return '<div class="card"><div class="row"><div><span class="ticker">'+s.ticker+'</span><span class="badge '+bc+'">'+bt+'</span></div><div><div class="price">$'+Number(s.price).toFixed(2)+'</div><div class="chg '+(up?'up':'down')+'">'+(up?'+':'')+Number(s.change).toFixed(2)+'%</div></div></div><div class="reason">'+(s.reason||'')+'</div><div class="cwrap"><canvas id="cv-'+i+'"></canvas><div class="clabels"><span>'+d1+'</span><span>7 дней</span><span>'+d2+'</span></div></div></div>';
+  }).join('');
+  ls.forEach(function(s,i){var wUp=s.history&&s.history.length>=2?s.history[s.history.length-1]>=s.history[0]:s.change>=0;chart(document.getElementById('cv-'+i),s.history,wUp)});
+}
+function renderN(){
+  var el=document.getElementById('n-list'),seen={},all=[];
+  liveNews.concat(db.news_7d||[]).forEach(function(n){if(n&&n.title&&!seen[n.title]){seen[n.title]=1;all.push(n)}});
+  var tm=('0'+new Date().getHours()).slice(-2)+':'+('0'+new Date().getMinutes()).slice(-2);
+  document.getElementById('ncnt').innerHTML='<span class="dot"></span>'+all.length+' шт. • '+tm;
+  if(!all.length){el.innerHTML='<div class="card">Новостей пока нет.</div>';return}
+  el.innerHTML=all.map(function(n){return '<div class="card"><div class="row"><span class="ntick">'+(n.tickers||'Рынок')+'</span><span style="font-size:11px;color:#94a3b8">'+(n.date||'')+'</span></div><div class="ntitle">'+n.title+'</div><div class="reason" style="margin:0">'+(n.summary||'')+'</div></div>'}).join('');
+}
+async function proxyGet(u){
+  var ps=['https://corsproxy.io/?'+encodeURIComponent(u),'https://api.allorigins.win/raw?url='+encodeURIComponent(u)];
+  for(var i=0;i<ps.length;i++){try{var r=await fetch(ps[i]);if(r.ok)return await r.text()}catch(e){}}return '';
+}
+async function refreshNews(){
+  if(nBusy)return;nBusy=true;
+  var feeds=['https://feeds.content.dowjones.io/public/rss/mw_topstories','https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664'],raw=[];
+  for(var f=0;f<feeds.length;f++){
+    var xml=await proxyGet(feeds[f]);if(!xml)continue;
+    try{
+      var items=new DOMParser().parseFromString(xml,'text/xml').querySelectorAll('item');
+      for(var i=0;i<Math.min(items.length,5);i++){
+        var t=((items[i].querySelector('title')||{}).textContent||'').trim(),d=((items[i].querySelector('description')||{}).textContent||'').replace(/<[^>]+>/g,'').trim().slice(0,170),p=(items[i].querySelector('pubDate')||{}).textContent||'';
+        if(!t)continue;var dt=p?new Date(p):new Date(),ds=('0'+dt.getDate()).slice(-2)+'.'+('0'+(dt.getMonth()+1)).slice(-2)+' '+('0'+dt.getHours()).slice(-2)+':'+('0'+dt.getMinutes()).slice(-2);
+        var fd=TKS.filter(function(tk){return new RegExp('\\b'+tk+'\\b','i').test(t+' '+d)});
+        raw.push({orig:t,title:t,summary:d,tickers:fd.length?fd.join(', '):'Рынок',date:ds});
       }
-      return '';
-    }
-    async function refreshNews(){
-      if(newsBusy)return;
-      newsBusy=true;
-      var feeds=[
-        'https://feeds.content.dowjones.io/public/rss/mw_topstories',
-        'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664'
-      ];
-      var raw=[];
-      for(var f=0;f<feeds.length;f++){
-        var xml=await fetchProxied(feeds[f]);
-        if(!xml)continue;
-        try{
-          var doc=new DOMParser().parseFromString(xml,'text/xml');
-          var items=doc.querySelectorAll('item');
-          for(var i=0;i<Math.min(items.length,6);i++){
-            var t=(items[i].querySelector('title')||{}).textContent||'';
-            var d=(items[i].querySelector('description')||{}).textContent||'';
-            var p=(items[i].querySelector('pubDate')||{}).textContent||'';
-            t=t.trim();d=d.replace(/<[^>]+>/g,'').trim().slice(0,180);
-            if(!t)continue;
-            var dt=p?new Date(p):new Date();
-            var ds=('0'+dt.getDate()).slice(-2)+'.'+('0'+(dt.getMonth()+1)).slice(-2)+'.'+dt.getFullYear()+' '+('0'+dt.getHours()).slice(-2)+':'+('0'+dt.getMinutes()).slice(-2);
-            var found=TICKERS.filter(function(tk){return new RegExp('\\b'+tk+'\\b','i').test(t+' '+d)});
-            raw.push({orig:t,title:t,summary:d,tickers:found.length?found.join(', '):'Рынок',date:ds});
-          }
-        }catch(e){}
-      }
-      var k=localStorage.getItem('user_gemini_key');
-      var cache={};
-      try{cache=JSON.parse(localStorage.getItem('ru_news_cache')||'{}')}catch(e){}
-      var toTr=[];
-      raw.forEach(function(item){
-        if(cache[item.orig]){item.title=cache[item.orig].t;item.summary=cache[item.orig].s;}
-        else{toTr.push(item);}
-      });
-      if(raw.length){liveNews=raw;renderN();}
-      if(k&&toTr.length){
-        var batch=toTr.slice(0,6);
-        var pr='Переведи эти финансовые новости на русский язык. Верни строго JSON массив объектов [{"i":0,"t":"Заголовок","s":"Суть в 1 предложение"}]:\n'+
-          batch.map(function(x,idx){return idx+': '+x.orig+' | '+x.summary}).join('\n');
-        try{
-          var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+k,{
-            method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({contents:[{parts:[{text:pr}]}],generationConfig:{responseMimeType:'application/json'}})
-          });
-          var res=await r.json();
-          var txt=res&&res.candidates&&res.candidates[0]&&res.candidates[0].content.parts[0].text;
-          if(txt){
-            var arr=JSON.parse(txt);
-            arr.forEach(function(a){
-              if(batch[a.i]){
-                batch[a.i].title=a.t;batch[a.i].summary=a.s;
-                cache[batch[a.i].orig]={t:a.t,s:a.s};
-              }
-            });
-            localStorage.setItem('ru_news_cache',JSON.stringify(cache));
-            renderN();
-          }
-        }catch(e){}
-      }
-      newsBusy=false;
-    }
-    async function getLiveOne(tk){
-      var u='https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=10d&interval=1d';
-      var txt=await fetchProxied(u);
-      if(!txt)return null;
-      try{
-        var j=JSON.parse(txt);
-        var res=j&&j.chart&&j.chart.result&&j.chart.result[0];
-        if(!res||!res.timestamp)return null;
-        var cl=res.indicators.quote[0].close||[],pts=[];
-        for(var k=0;k<res.timestamp.length;k++){
-          if(cl[k]!=null){
-            var dt=new Date(res.timestamp[k]*1000);
-            pts.push({d:('0'+dt.getDate()).slice(-2)+'.'+('0'+(dt.getMonth()+1)).slice(-2),c:Number(cl[k].toFixed(2))});
-          }
-        }
-        if(pts.length<2)return null;
-        pts=pts.slice(-7);
-        var mp=res.meta&&res.meta.regularMarketPrice;
-        if(mp)pts[pts.length-1].c=Number(Number(mp).toFixed(2));
-        var pr=pts[pts.length-1].c,pv=pts[pts.length-2].c;
-        return{ticker:tk,price:pr,change:Number((((pr-pv)/pv)*100).toFixed(2)),history:pts.map(function(x){return x.c}),dates:pts.map(function(x){return x.d})};
-      }catch(e){}
-      return null;
-    }
-    async function refreshLive(){
-      if(busy)return;
-      busy=true;
-      var badge=document.getElementById('upd');
-      badge.innerHTML='<span class="dot" style="background:#38bdf8"></span>Обновляю...';
-      var map={},ok=0;
-      (db.stocks||[]).forEach(function(s){map[s.ticker]=s});
-      for(var i=0;i<TICKERS.length;i+=5){
-        var res=await Promise.all(TICKERS.slice(i,i+5).map(getLiveOne));
-        res.forEach(function(it){
-          if(!it)return;
-          ok++;
-          if(map[it.ticker]){
-            map[it.ticker].price=it.pr
+    }catch(e){}
+  }
+  var k=localStorage.getItem('user_gemini_key'),cache={},toTr=[];
+  try{cache=JSON.parse(localStorage.getItem('ru_news_cache')||'{}')}catch(e){}
+  raw.forEach(function(it){if(cache[it.orig]){it.title=cache[it.orig].t;it.summary=cache[it.orig].s}else toTr.push(it)});
+  if(raw.length){liveNews=raw;renderN()}
+  if(k&&toTr.length){
+    var b=toTr.slice(0,5),pr='Переведи новости на русский. Верни JSON [{"i":0,"t":"Заголовок","s":"Суть"}]:\n'+b.map(function(x,ix){return ix+': '+x.orig+' | '+x.summary}).join('\n');
+    try{
+      var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:pr}]}],generationConfig:{responseMimeType:'application/json'}})});
+      var j=await r.json(),tx=j&&j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0].text;
+      if(tx){JSON.parse(tx).forEach(function(a){if(b[a.i]){b[a.i].title=a.t;b[a.i].summary=a.s;cache[b[a.i].orig]={t:a.t,s:a.s}}});localStorage.setItem('ru_news_cache',JSON.stringify(cache));renderN()}
+    }catch(e){}
+  }
+  nBusy=false;
+}
+async function getOne(tk){
+  var tx=await proxyGet('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'?range=10d&interval=1d');if(!tx)return null;
+  try{
+    var res=JSON.parse(tx).chart.result[0],cl=res.indicators.quote[0].close||[],pts=[];
+    for(var k=0;k<res.timestamp.length;k++)if(cl[k]!=null){var dt=new Date(res.timestamp[k]*1000);pts.push({d:('0'+dt.getDate()).slice(-2)+'.'+('0'+(dt.getMonth()+1)).slice(-2),c:Number(cl[k].toFixed(2))})}
+    if(pts.length<2)return null;pts=pts.slice(-7);
+    if(res.meta&&res.meta.regularMarketPrice)pts[pts.length-1].c=Number(Number(res.meta.regularMarketPrice).toFixed(2));
+    var pr=pts[pts.length-1].c,pv=pts[pts.length-2].c;
+    return{ticker:tk,price:pr,change:Number((((pr-pv)/pv)*100).toFixed(2)),history:pts.map(function(x){return x.c}),dates:pts.map(function(x){return x.d})};
+  }catch(e){return null}
+}
+async function refreshLive(){
+  if(busy)return;busy=true;var bg=document.getElementById('upd');bg.innerHTML='<span class="dot" style="background:#38bdf8"></span>Обновляю...';
+  var map={},ok=0;(db.stocks||[]).forEach(function(s){map[s.ticker]=s});
+  for(var i=0;i<TKS.length;i+=5){
+    var res=await Promise.all(TKS.slice(i,i+5).map(getOne));
+    res.forEach(function(it){if(!it)return;ok++;if(map[it.ticker]){map[it.ticker].price=it.price;map[it.ticker].change=it.change;map[it.ticker].history=it.history;map[it.ticker].dates=it.dates}else{it.verdict='WAIT';it.reason='Оценка...';map[it.ticker]=it}});
+    db.stocks=Object.keys(map).map(function(k){return map[k]}).sort(function(a,b){return a.change-b.change});renderS();
+  }
+  var n=new Date(),tm=('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2);
+  bg.innerHTML=ok?'<span class="dot"></span>Лайв '+tm:(db.updated_at||'Кэш');busy=false;
+}
+function updKS(){var k=localStorage.getItem('user_gemini_key');document.getElementById('kstat').innerText=k?('Активный токен: '+k.slice(0,6)+'••••'+k.slice(-4)):'Токен не установлен'}
+function toggleK(){var b=document.getElementById('kbox');updKS();b.style.display=b.style.display==='none'?'block':'none'}
+function chkK(){var k=localStorage.getItem('user_gemini_key');updKS();document.getElementById('kbox').style.display=k?'none':'block'}
+function saveK(){var v=document.getElementById('kinp').value.trim();if(v){localStorage.setItem('user_gemini_key',v);document.getElementById('kinp').value='';chkK();refreshNews()}}
+function clearK(){localStorage.removeItem('user_gemini_key');document.getElementById('kinp').value='';updKS()}
+function qAsk(t){document.getElementById('cinp').value=t;send()}
+async function send(){
+  var inp=document.getElementById('cinp'),t=inp.value.trim();if(!t)return;var k=localStorage.getItem('user_gemini_key');if(!k){chkK();return}
+  var cb=document.getElementById('chat');cb.innerHTML+='<div class="msg user">'+t.replace(/</g,'&lt;')+'</div>';inp.value='';
+  var id='m'+Date.now();cb.innerHTML+='<div class="msg ai-msg" id="'+id+'">Думаю...</div>';
+  var sc=(db.stocks||[]).map(function(s){return s.ticker+': $'+s.price+' ('+s.change+'%), '+s.verdict+' - '+s.reason}).join('\n');
+  var nc=liveNews.concat(db.news_7d||[]).slice(0,8).map(function(n){return n.title+': '+n.summary}).join('\n');
+  var pr='Ты ИИ-партнёр инвестора. Отвечай на русском, кратко и без звездочек (*).\nАкции:\n'+sc+'\nНовости:\n'+nc+'\nВопрос: '+t;
+  var rep=null,ms=['gemini-2.5-flash','gemini-flash-latest'];
+  for(var i=0;i<ms.length;i++){try{var r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+ms[i]+':generateContent?key='+k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:pr}]}]})});var d=await r.json();if(d&&d.candidates&&d.candidates[0]){rep=d.candidates[0].content.parts[0].text;break}}catch(e){}}
+  document.getElementById(id).innerText=rep||'Ошибка ответа. Проверь токен.';
+}
+try{if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.expand();window.Telegram.WebApp.setHeaderColor('#070b14');window.Telegram.WebApp.setBackgroundColor('#070b14')}}catch(e){}
+chkK();
+fetch('data.json?t='+Date.now()).then(functi
