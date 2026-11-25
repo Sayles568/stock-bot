@@ -198,4 +198,8 @@ async function send(){
 }
 try{if(window.Telegram&&window.Telegram.WebApp){window.Telegram.WebApp.expand();window.Telegram.WebApp.setHeaderColor('#070b14');window.Telegram.WebApp.setBackgroundColor('#070b14')}}catch(e){}
 chkK();
-fetch('data.json?t='+Date.now()).then(functi
+fetch('data.json?t='+Date.now()).then(function(r){if(!r.ok)throw 1;return r.json()}).then(function(d){db=d;renderS();renderN();refreshLive();refreshNews()}).catch(function(){refreshLive();refreshNews()});
+setInterval(refreshNews,90000);
+</script>
+</body>
+</html>
